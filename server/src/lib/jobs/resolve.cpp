@@ -430,7 +430,7 @@ static std::string groupSql(tnt::Connection& conn, const Group::Rules& group)
                     break;
                 case Group::Fields::Unknown:
                 default:
-                    throw Error("Unsupported field '{}' in condition", cond.field.value());
+                    throw Error("Unsupported field '{}' in condition", cond.field.asString());
             }
         } else {
             subQueries.push_back(groupSql(conn, it.get<Group::Rules>()));
