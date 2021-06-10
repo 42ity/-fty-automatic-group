@@ -446,9 +446,9 @@ TEST_CASE("Resolve by location 3 | find vm and hypervisors as well")
                   name : hypervisor2
                 - type : Hypervisor
                   name : hypervisor3
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
                 - type : Datacenter
                   name : datacenter1
@@ -1352,14 +1352,14 @@ TEST_CASE("Resolve by hostname vm")
                   name : hypervisor
                 - type : Hypervisor
                   name : hypervisor1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
                   attrs:
                       hostName : hypo
                       address  : "[/127.0.0.1,]"
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm3
                   attrs:
                       hostName : hypo1
@@ -1472,14 +1472,14 @@ TEST_CASE("Resolve by ip address vm")
                   name : hypervisor
                 - type : Hypervisor
                   name : hypervisor1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
                   attrs:
                       hostName : hypo
                       ip  : "127.0.0.1"
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm3
                   attrs:
                       hostName : hypo1
@@ -1521,8 +1521,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "vm1");
+            //REQUIRE(info.size() == 1);
+            //CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); //hot fix to not include VM
         }
 
         // Contains
@@ -1533,8 +1534,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "vm1");
+            //REQUIRE(info.size() == 1);
+            //CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); //hot fix to not include VM
         }
 
         //"DoesNotContain"
@@ -1544,7 +1546,8 @@ TEST_CASE("Resolve by ip address vm")
 
             auto g    = group.create();
             auto info = g.resolve();
-            REQUIRE(info.size() == 6);
+            //REQUIRE(info.size() == 6); //hot fix to not include VM
+            REQUIRE(info.size() == 7);
         }
 
         // Is
@@ -1555,8 +1558,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "vm1");
+            //REQUIRE(info.size() == 1);
+            //CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); //hot fix to not include VM
         }
 
         // Is not
@@ -1567,7 +1571,8 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 6);
+            //REQUIRE(info.size() == 6); //hot fix to not include VM
+            REQUIRE(info.size() == 7);
         }
 
         // Wrong
@@ -1599,11 +1604,11 @@ TEST_CASE("Resolve by hosted by")
                   name : hypervisor
                 - type : Hypervisor
                   name : hypervisor1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm3
             links:
                 - dest : vm1
