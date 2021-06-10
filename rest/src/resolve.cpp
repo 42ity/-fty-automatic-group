@@ -2,8 +2,8 @@
 #include "common/commands.h"
 #include "common/message-bus.h"
 #include "group-rest.h"
-#include <fty/rest/component.h>
 #include <asset/json.h>
+#include <fty/rest/component.h>
 #include <fty/split.h>
 
 namespace fty::agroup {
@@ -15,9 +15,14 @@ unsigned Resolve::run()
         throw rest::Error(ret.error());
     }
 
-    auto strIdPrt = m_request.queryArg<std::string>("id");
+    auto        strIdPrt = m_request.queryArg<std::string>("id");
+    std::string jsonBody;
+
     if (!strIdPrt) {
-        throw rest::errors::RequestParamRequired("id");
+        jsonBody = m_request.body();
+        if (jsonBody.empty()) {
+            throw rest::errors::RequestParamRequired("id or rules");
+        }
     }
 
     fty::MessageBus bus;
@@ -28,7 +33,11 @@ unsigned Resolve::run()
     fty::Message msg = message(fty::commands::resolve::Subject);
 
     fty::commands::resolve::In in;
-    in.id = fty::convert<uint16_t>(*strIdPrt);
+    if (jsonBody.empty()) {
+        in.id = fty::convert<uint16_t>(*strIdPrt);
+    } else if (auto ret = pack::yaml::deserialize(jsonBody, in); !ret) {
+        throw rest::errors::Internal(ret.error());
+    }
 
     msg.setData(*pack::json::serialize(in));
 
@@ -38,13 +47,13 @@ unsigned Resolve::run()
     }
 
     commands::resolve::Out data;
-    auto info = pack::json::deserialize(ret->userData[0], data);
+    auto                   info = pack::json::deserialize(ret->userData[0], data);
     if (!info) {
         throw rest::errors::Internal(info.error());
     }
 
     std::vector<std::string> out;
-    for(const auto& it: data) {
+    for (const auto& it : data) {
         std::string json = asset::getJsonAsset(fty::convert<uint32_t>(it.id.value()));
         if (json.empty()) {
             throw rest::errors::Internal("Cannot build asset information");

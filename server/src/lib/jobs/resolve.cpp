@@ -28,18 +28,18 @@ static std::string op(const Group::Condition& cond)
 }
 
 
-static std::string value(const Group::Condition& cond, std::string (*f)(const std::string&) = nullptr )
+static std::string value(const Group::Condition& cond, std::string (*f)(const std::string&) = nullptr)
 {
     if (cond.op == Group::ConditionOp::Contains || cond.op == Group::ConditionOp::DoesNotContain) {
-        //Like or not like
-        //Escape the forbiden char at first
+        // Like or not like
+        // Escape the forbiden char at first
         std::string val = cond.value.value();
 
-        val = std::regex_replace (val, std::regex(R"(\\)"), R"(\\\\)");
-        val = std::regex_replace (val, std::regex(R"(%)"), R"(\%)");
-        val = std::regex_replace (val, std::regex(R"(_)"), R"(\_)");
+        val = std::regex_replace(val, std::regex(R"(\\)"), R"(\\\\)");
+        val = std::regex_replace(val, std::regex(R"(%)"), R"(\%)");
+        val = std::regex_replace(val, std::regex(R"(_)"), R"(\_)");
 
-        if(f) {
+        if (f) {
             val = f(val);
         }
 
@@ -333,7 +333,7 @@ static std::string byHostName(const Group::Condition& cond)
 static std::string byIpAddress(const Group::Condition& cond)
 {
     std::string tmpOp = op(cond);
-    std::string sql = R"(
+    std::string sql   = R"(
         SELECT e.id_asset_element
         FROM t_bios_asset_element AS e
         LEFT JOIN t_bios_asset_ext_attributes a ON e.id_asset_element = a.id_asset_element
@@ -349,7 +349,7 @@ static std::string byIpAddress(const Group::Condition& cond)
     )";
 
 
-    if (cond.op == Group::ConditionOp::IsNot  || cond.op == Group::ConditionOp::DoesNotContain) {
+    if (cond.op == Group::ConditionOp::IsNot || cond.op == Group::ConditionOp::DoesNotContain) {
         sql =
             "SELECT id_asset_element FROM t_bios_asset_element \
              WHERE id_asset_element NOT IN (" +
@@ -357,8 +357,8 @@ static std::string byIpAddress(const Group::Condition& cond)
         tmpOp = cond.op != Group::ConditionOp::IsNot ? "like" : "=";
     }
 
-    auto replaceStarByPercent= [] (const std::string & val){
-        return std::regex_replace (val, std::regex(R"(\*)"), R"(%)");
+    auto replaceStarByPercent = [](const std::string& val) {
+        return std::regex_replace(val, std::regex(R"(\*)"), R"(%)");
     };
     // clang-format off
     std::string ret = fmt::format(sql,
@@ -455,9 +455,16 @@ void Resolve::run(const commands::resolve::In& in, commands::resolve::Out& asset
 {
     logDebug("resolve {}", *pack::json::serialize(in));
 
-    auto group = Storage::byId(in.id);
-    if (!group) {
-        throw Error(group.error());
+    fty::Group group;
+    if (in.id.hasValue()) {
+        auto groupTmp = Storage::byId(in.id);
+
+        if (!groupTmp) {
+            throw Error(groupTmp.error());
+        }
+        group = groupTmp.value();
+    } else {
+        group.rules = in.rules;
     }
 
     // Normal connect in _this_ thread, otherwise tntdb will fail
@@ -465,7 +472,7 @@ void Resolve::run(const commands::resolve::In& in, commands::resolve::Out& asset
     // Normal connection, continue my sad work with db
     tnt::Connection conn;
 
-    std::string groups = groupSql(conn, group->rules);
+    std::string groups = groupSql(conn, group.rules);
 
     std::string sql = R"(
         SELECT
