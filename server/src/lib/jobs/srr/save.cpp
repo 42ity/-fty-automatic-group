@@ -1,10 +1,10 @@
 #include "save.h"
 #include "common/group.h"
-#include "common/logger.h"
 #include "common/srr.h"
 #include "utils.h"
 #include <list>
 #include <pack/serialization.h>
+#include <fty_log.h>
 
 namespace fty::job::srr {
 
