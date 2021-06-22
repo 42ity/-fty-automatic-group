@@ -1,5 +1,4 @@
 #include "server.h"
-#include "common/logger.h"
 #include "common/message-bus.h"
 #include "common/srr.h"
 #include "config.h"
