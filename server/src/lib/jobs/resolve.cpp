@@ -1,8 +1,10 @@
 #include "resolve.h"
 #include "asset/asset-db.h"
-#include "asset/db.h"
 #include "lib/storage.h"
 #include <fty_common_asset_types.h>
+#include <fty_common_db_connection.h>
+#include <fty_common_db_dbpath.h>
+#include <tntdb.h>
 
 namespace fty::job {
 
@@ -28,18 +30,18 @@ static std::string op(const Group::Condition& cond)
 }
 
 
-static std::string value(const Group::Condition& cond, std::string (*f)(const std::string&) = nullptr )
+static std::string value(const Group::Condition& cond, std::string (*f)(const std::string&) = nullptr)
 {
     if (cond.op == Group::ConditionOp::Contains || cond.op == Group::ConditionOp::DoesNotContain) {
-        //Like or not like
-        //Escape the forbiden char at first
+        // Like or not like
+        // Escape the forbiden char at first
         std::string val = cond.value.value();
 
-        val = std::regex_replace (val, std::regex(R"(\\)"), R"(\\\\)");
-        val = std::regex_replace (val, std::regex(R"(%)"), R"(\%)");
-        val = std::regex_replace (val, std::regex(R"(_)"), R"(\_)");
+        val = std::regex_replace(val, std::regex(R"(\\)"), R"(\\\\)");
+        val = std::regex_replace(val, std::regex(R"(%)"), R"(\%)");
+        val = std::regex_replace(val, std::regex(R"(_)"), R"(\_)");
 
-        if(f) {
+        if (f) {
             val = f(val);
         }
 
@@ -65,8 +67,8 @@ static std::string sqlLogicalOperator(const Group::LogicalOp& op)
 static std::vector<uint64_t> vmLinkTypes()
 {
     static std::vector<uint64_t> ids = []() {
-        std::string     sql = "select id_asset_link_type from t_bios_asset_link_type where name like '%.hosts.vm'";
-        tnt::Connection conn;
+        std::string         sql = "select id_asset_link_type from t_bios_asset_link_type where name like '%.hosts.vm'";
+        fty::db::Connection conn;
         std::vector<uint64_t> ret;
         for (const auto& it : conn.select(sql)) {
             ret.push_back(it.get<uint64_t>("id_asset_link_type"));
@@ -181,7 +183,7 @@ static std::vector<uint64_t> hypervisorLinkTypes()
     static std::vector<uint64_t> ids = []() {
         std::string sql =
             "select id_asset_link_type from t_bios_asset_link_type where name = 'ipminfra.server.hosts.os'";
-        tnt::Connection       conn;
+        fty::db::Connection   conn;
         std::vector<uint64_t> ret;
         for (const auto& it : conn.select(sql)) {
             ret.push_back(it.get<uint64_t>("id_asset_link_type"));
@@ -192,7 +194,7 @@ static std::vector<uint64_t> hypervisorLinkTypes()
     return ids;
 }
 
-static std::string byLocation(tnt::Connection& conn, const Group::Condition& cond)
+static std::string byLocation(fty::db::Connection& conn, const Group::Condition& cond)
 {
     std::string dcSql = R"(
         SELECT id_asset_element
@@ -333,7 +335,7 @@ static std::string byHostName(const Group::Condition& cond)
 static std::string byIpAddress(const Group::Condition& cond)
 {
     std::string tmpOp = op(cond);
-    std::string sql = R"(
+    std::string sql   = R"(
         SELECT e.id_asset_element
         FROM t_bios_asset_element AS e
         LEFT JOIN t_bios_asset_ext_attributes a ON e.id_asset_element = a.id_asset_element
@@ -347,7 +349,7 @@ static std::string byIpAddress(const Group::Condition& cond)
     )";
 
 
-    if (cond.op == Group::ConditionOp::IsNot  || cond.op == Group::ConditionOp::DoesNotContain) {
+    if (cond.op == Group::ConditionOp::IsNot || cond.op == Group::ConditionOp::DoesNotContain) {
         sql =
             "SELECT id_asset_element FROM t_bios_asset_element \
              WHERE id_asset_element NOT IN (" +
@@ -355,8 +357,8 @@ static std::string byIpAddress(const Group::Condition& cond)
         tmpOp = cond.op != Group::ConditionOp::IsNot ? "like" : "=";
     }
 
-    auto replaceStarByPercent= [] (const std::string & val){
-        return std::regex_replace (val, std::regex(R"(\*)"), R"(%)");
+    auto replaceStarByPercent = [](const std::string& val) {
+        return std::regex_replace(val, std::regex(R"(\*)"), R"(%)");
     };
     // clang-format off
     std::string ret = fmt::format(sql,
@@ -392,7 +394,7 @@ static std::string byHostedBy(const Group::Condition& cond)
 
 // =====================================================================================================================
 
-static std::string groupSql(tnt::Connection& conn, const Group::Rules& group)
+static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group)
 {
     std::vector<std::string> subQueries;
     for (const auto& it : group.conditions) {
@@ -461,7 +463,7 @@ void Resolve::run(const commands::resolve::In& in, commands::resolve::Out& asset
     // Normal connect in _this_ thread, otherwise tntdb will fail
     tntdb::connect(getenv("DBURL") ? getenv("DBURL") : DBConn::url);
     // Normal connection, continue my sad work with db
-    tnt::Connection conn;
+    fty::db::Connection conn;
 
     std::string groups = groupSql(conn, group->rules);
 

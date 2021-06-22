@@ -10,7 +10,6 @@
 #include "jobs/resolve.h"
 #include "jobs/srr.h"
 #include "jobs/update.h"
-#include <asset/db.h>
 #include <fty_common_messagebus.h>
 
 namespace fty {
