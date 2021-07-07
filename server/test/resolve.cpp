@@ -57,6 +57,167 @@ public:
     }
 };
 
+TEST_CASE("Resolve by name with rules input")
+{
+  auto resolve = [](const std::string & json) -> fty::commands::resolve::Out {
+      fty::job::Resolve resolveObj;
+
+      fty::commands::resolve::In  in;
+      fty::commands::resolve::Out out;
+
+      if (auto ret = pack::yaml::deserialize(json, in); !ret) {
+          throw std::runtime_error(ret.error());
+      }
+
+      REQUIRE_NOTHROW(resolveObj.run(in, out));
+      return out;
+  };
+
+    try {
+        fty::SampleDb db(R"(
+            items:
+                - type : Datacenter
+                  name : datacenter
+                  items:
+                    - type     : Server
+                      name     : srv1
+                      ext-name : srv1
+                    - type     : Server
+                      name     : srv2
+                      ext-name : srv2
+                - type : Datacenter
+                  name : datacenter1
+                  items:
+                    - type     : Server
+                      name     : srv11
+                      ext-name : srv11
+                    - type     : Server
+                      name     : srv21
+                      ext-name : srv21
+            )");
+
+        //"Contains"
+        {
+          std::string json = R"(
+            {
+              "rules": {
+                  "operator": "AND",
+                  "conditions": [
+                    {
+                      "field": "name",
+                      "operator": "CONTAINS",
+                      "value": "srv1"
+                    }
+                  ]
+              }
+            }
+           )";
+            auto info = resolve(json);
+
+            REQUIRE(info.size() == 2);
+            CHECK(info[0].name == "srv1");
+            CHECK(info[1].name == "srv11");
+        }
+
+        //"DoesNotContain"
+        {
+            std::string json = R"(
+              {
+                "rules": {
+                    "operator": "AND",
+                    "conditions": [
+                      {
+                        "field": "name",
+                        "operator": "DOESNOTCONTAIN",
+                        "value": "srv1"
+                      }
+                    ]
+                }
+              }
+            )";
+
+            auto info = resolve(json);
+
+            REQUIRE(info.size() == 2);
+            CHECK(info[0].name == "srv2");
+            CHECK(info[1].name == "srv21");
+        }
+
+        //"Is"
+        {
+            std::string json = R"(
+              {
+                "rules": {
+                    "operator": "AND",
+                    "conditions": [
+                      {
+                        "field": "name",
+                        "operator": "IS",
+                        "value": "srv11"
+                      }
+                    ]
+                }
+              }
+            )";
+
+            auto info = resolve(json);
+
+            REQUIRE(info.size() == 1);
+            CHECK(info[0].name == "srv11");
+        }
+
+        //"IsNot"
+        {
+            std::string json = R"(
+              {
+                "rules": {
+                    "operator": "AND",
+                    "conditions": [
+                      {
+                        "field": "name",
+                        "operator": "ISNOT",
+                        "value": "srv11"
+                      }
+                    ]
+                }
+              }
+            )"; 
+
+            auto info = resolve(json);
+
+            REQUIRE(info.size() == 3);
+            CHECK(info[0].name == "srv1");
+            CHECK(info[1].name == "srv2");
+            CHECK(info[2].name == "srv21");
+        }
+
+        //"Not exists"
+        { 
+            std::string json = R"(
+              {
+                "rules": {
+                    "operator": "AND",
+                    "conditions": [
+                      {
+                        "field": "name",
+                        "operator": "IS",
+                        "value": "wtf"
+                      }
+                    ]
+                }
+              }
+            )"; 
+
+            auto info = resolve(json);
+
+            REQUIRE(info.size() == 0);
+        } 
+
+        CHECK(fty::Storage::clear());
+    } catch (const std::exception& ex) {
+        FAIL(ex.what());
+    }
+}
 
 TEST_CASE("Resolve by name")
 {
@@ -285,9 +446,9 @@ TEST_CASE("Resolve by location 3 | find vm and hypervisors as well")
                   name : hypervisor2
                 - type : Hypervisor
                   name : hypervisor3
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
                 - type : Datacenter
                   name : datacenter1
@@ -1191,14 +1352,14 @@ TEST_CASE("Resolve by hostname vm")
                   name : hypervisor
                 - type : Hypervisor
                   name : hypervisor1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
                   attrs:
                       hostName : hypo
                       address  : "[/127.0.0.1,]"
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm3
                   attrs:
                       hostName : hypo1
@@ -1311,14 +1472,14 @@ TEST_CASE("Resolve by ip address vm")
                   name : hypervisor
                 - type : Hypervisor
                   name : hypervisor1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
                   attrs:
                       hostName : hypo
                       ip  : "127.0.0.1"
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm3
                   attrs:
                       hostName : hypo1
@@ -1360,8 +1521,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "vm1");
+            //REQUIRE(info.size() == 1);
+            //CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); //hot fix to not include VM
         }
 
         // Contains
@@ -1372,8 +1534,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "vm1");
+            //REQUIRE(info.size() == 1);
+            //CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); //hot fix to not include VM
         }
 
         //"DoesNotContain"
@@ -1383,7 +1546,8 @@ TEST_CASE("Resolve by ip address vm")
 
             auto g    = group.create();
             auto info = g.resolve();
-            REQUIRE(info.size() == 6);
+            //REQUIRE(info.size() == 6); //hot fix to not include VM
+            REQUIRE(info.size() == 7);
         }
 
         // Is
@@ -1394,8 +1558,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "vm1");
+            //REQUIRE(info.size() == 1);
+            //CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); //hot fix to not include VM
         }
 
         // Is not
@@ -1406,7 +1571,8 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 6);
+            //REQUIRE(info.size() == 6); //hot fix to not include VM
+            REQUIRE(info.size() == 7);
         }
 
         // Wrong
@@ -1438,11 +1604,11 @@ TEST_CASE("Resolve by hosted by")
                   name : hypervisor
                 - type : Hypervisor
                   name : hypervisor1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm1
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm2
-                - type : VirtualMachine
+                - type : virtual-machine
                   name : vm3
             links:
                 - dest : vm1

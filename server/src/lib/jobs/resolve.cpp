@@ -339,6 +339,7 @@ static std::string byIpAddress(const Group::Condition& cond)
         SELECT e.id_asset_element
         FROM t_bios_asset_element AS e
         LEFT JOIN t_bios_asset_ext_attributes a ON e.id_asset_element = a.id_asset_element
+        LEFT JOIN t_bios_asset_element_type t ON e.id_type = t.id_asset_element_type
         WHERE
             a.value {op} '{val}' AND
             ((
@@ -346,6 +347,7 @@ static std::string byIpAddress(const Group::Condition& cond)
             ) OR (
                 a.keytag = 'ip' 
             ))
+            AND t.name != "virtual-machine"
     )";
 
 
@@ -430,7 +432,7 @@ static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group
                     break;
                 case Group::Fields::Unknown:
                 default:
-                    throw Error("Unsupported field '{}' in condition", cond.field.value());
+                    throw Error("Unsupported field '{}' in condition", cond.field.asString());
             }
         } else {
             subQueries.push_back(groupSql(conn, it.get<Group::Rules>()));
@@ -455,9 +457,16 @@ void Resolve::run(const commands::resolve::In& in, commands::resolve::Out& asset
 {
     logDebug("resolve {}", *pack::json::serialize(in));
 
-    auto group = Storage::byId(in.id);
-    if (!group) {
-        throw Error(group.error());
+    fty::Group group;
+    if (in.id.hasValue()) {
+        auto groupTmp = Storage::byId(in.id);
+
+        if (!groupTmp) {
+            throw Error(groupTmp.error());
+        }
+        group = groupTmp.value();
+    } else {
+        group.rules = in.rules;
     }
 
     // Normal connect in _this_ thread, otherwise tntdb will fail
@@ -465,7 +474,7 @@ void Resolve::run(const commands::resolve::In& in, commands::resolve::Out& asset
     // Normal connection, continue my sad work with db
     fty::db::Connection conn;
 
-    std::string groups = groupSql(conn, group->rules);
+    std::string groups = groupSql(conn, group.rules);
 
     std::string sql = R"(
         SELECT
