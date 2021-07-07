@@ -1,9 +1,9 @@
-#include "common/logger.h"
 #include "lib/config.h"
 #include "lib/daemon.h"
 #include "lib/server.h"
 #include <fty/command-line.h>
 #include <iostream>
+#include <fty_log.h>
 
 int main(int argc, char** argv)
 {

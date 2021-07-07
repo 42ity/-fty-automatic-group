@@ -1,5 +1,4 @@
 #include "srr.h"
-#include "common/logger.h"
 #include "common/message.h"
 #include "srr/save.h"
 #include "srr/restore.h"

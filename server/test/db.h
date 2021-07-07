@@ -1,7 +1,7 @@
 #pragma once
-#include "asset/asset-db.h"
-#include "asset/db.h"
+#include <asset/asset-db.h>
 #include <fty_common_asset_types.h>
+#include <fty_common_db_connection.h>
 
 namespace fty {
 
@@ -32,6 +32,7 @@ struct SampleDb
     ~SampleDb();
 
     uint32_t idByName(const std::string& name);
+
 private:
     std::vector<uint32_t>           m_ids;
     std::map<std::string, uint32_t> m_mapping;

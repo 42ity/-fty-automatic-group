@@ -5,6 +5,7 @@
 #include <asset/json.h>
 #include <fty/rest/component.h>
 #include <fty/split.h>
+#include <fty/string-utils.h>
 
 namespace fty::agroup {
 

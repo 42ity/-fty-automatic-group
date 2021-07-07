@@ -1,11 +1,11 @@
 #pragma once
 #include "common/commands.h"
-#include "common/logger.h"
 #include "common/message-bus.h"
 #include "common/message.h"
 #include "config.h"
 #include <fty/expected.h>
 #include <fty/thread-pool.h>
+#include <fty_log.h>
 
 namespace fty::job {
 
