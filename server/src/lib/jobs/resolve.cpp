@@ -393,7 +393,9 @@ static std::string byHostedBy(const Group::Condition& cond)
     );
     // clang-format on
 }
-static std::string byGroupId(tnt::Connection& conn, const Group::Condition& cond);
+
+static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond);
+
 // =====================================================================================================================
 
 static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group)
@@ -482,7 +484,7 @@ static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group
    )"_format(lambdaImplode());
 }
 
-static std::string byGroupId(tnt::Connection& conn, const Group::Condition& cond)
+static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond)
 {
     auto val   = fty::convert<uint64_t, std::string>(cond.value);
     auto group = Storage::byId(val);
