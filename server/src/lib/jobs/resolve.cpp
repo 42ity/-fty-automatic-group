@@ -396,6 +396,30 @@ static std::string byHostedBy(const Group::Condition& cond)
 
 static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond);
 
+static std::string byTag(const Group::Condition& cond)
+{
+    static std::string sqlTagId = R"(
+        SELECT id_tag
+        FROM t_bios_tag
+        WHERE name {op} '{val}'
+    )";
+
+    static std::string sql = R"(
+        SELECT id_asset_element
+        FROM t_bios_asset_elemetn_tag_relation
+        WHERE id_tag={sqlTag} 
+    )";
+
+    // clang-format off
+    return fmt::format(sql,
+        "sqlTag"_a = fmt::format(sqlTagId,
+            "op"_a  = op(cond),
+            "val"_a = value(cond)
+        )
+    );
+    // clang-format on
+}
+
 // =====================================================================================================================
 
 static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group)
@@ -449,6 +473,9 @@ static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group
                     } else {
                         subQueries.emplace_back(byGroupId(conn, cond));
                     }
+                    break;
+                case Group::Fields::Tag:
+                    subQueries.emplace_back(byTag(cond));
                     break;
                 case Group::Fields::Unknown:
                 default:
