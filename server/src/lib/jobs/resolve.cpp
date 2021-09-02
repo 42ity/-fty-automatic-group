@@ -459,17 +459,17 @@ static std::string byTag(const Group::Condition& cond)
         )
     )";
 
-    std::stringstream ss;
+    std::string opAdditional;
     if(cond.op == Group::ConditionOp::IsNot){
-        ss << Group::ConditionOp::Is;
+        opAdditional = "=";
     } else if(cond.op == Group::ConditionOp::DoesNotContain){
-        ss << Group::ConditionOp::Contains;
+        opAdditional = "like";
     }
 
-    if(!ss.str().empty()){
+    if(!opAdditional.empty()){
         return fmt::format(sqlAdditional,
             "sql"_a = ret,
-            "op"_a  = ss.str(),
+            "op"_a  = opAdditional,
             "val"_a = value(cond)
         );
     }
