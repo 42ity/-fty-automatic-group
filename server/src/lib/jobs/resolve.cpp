@@ -394,43 +394,6 @@ static std::string byHostedBy(const Group::Condition& cond)
 
 static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond);
 
-/*
-
-SELECT l.id_asset_device_dest FROM t_bios_asset_link AS l
-LEFT JOIN t_bios_asset_element AS e ON e.id_asset_element = l.id_asset_device_src
-
-select r.id_asset_element from t_bios_asset_element_tag_relation as r LEFT JOIN t_bios_tag as tag on r.id_tag = tag.id_tag and tag.name = 'black';
-
-SELECT r.id_asset_element 
-select r.id_asset_element from t_bios_asset_element_tag_relation as r inner JOIN t_bios_tag as tag on r.id_tag = tag.id_tag where tag.name like 'whitess';
-
-SELECT r.id_asset_element 
-FROM t_bios_asset_element_tag_relation AS r 
-INNER JOIN t_bios_tag AS tag 
-ON r.id_tag = tag.id_tag 
-WHERE tag.name {op} '{val}'
-AND r.id_asset_element NOT IN (
-    SELECT r.id_asset_element 
-    FROM t_bios_asset_element_tag_relation AS r 
-    INNER JOIN t_bios_tag AS tag 
-    ON r.id_tag = tag.id_tag 
-    WHERE tag.name {op} '{val}'
-)
-
-SELECT DISTINCT r.id_asset_element 
-FROM t_bios_asset_element_tag_relation AS r 
-INNER JOIN t_bios_tag AS tag 
-ON r.id_tag = tag.id_tag 
-WHERE tag.name <> 'black'
-AND r.id_asset_element NOT IN (
-    SELECT r.id_asset_element 
-    FROM t_bios_asset_element_tag_relation AS r 
-    INNER JOIN t_bios_tag AS tag 
-    ON r.id_tag = tag.id_tag 
-    WHERE tag.name = 'black'
-);
-*/
-
 static std::string byTag(const Group::Condition& cond)
 {
     static std::string sql = R"(
@@ -460,18 +423,14 @@ static std::string byTag(const Group::Condition& cond)
     )";
 
     std::string opAdditional;
-    if(cond.op == Group::ConditionOp::IsNot){
+    if (cond.op == Group::ConditionOp::IsNot) {
         opAdditional = "=";
-    } else if(cond.op == Group::ConditionOp::DoesNotContain){
+    } else if (cond.op == Group::ConditionOp::DoesNotContain) {
         opAdditional = "like";
     }
 
-    if(!opAdditional.empty()){
-        return fmt::format(sqlAdditional,
-            "sql"_a = ret,
-            "op"_a  = opAdditional,
-            "val"_a = value(cond)
-        );
+    if (!opAdditional.empty()) {
+        return fmt::format(sqlAdditional, "sql"_a = ret, "op"_a = opAdditional, "val"_a = value(cond));
     }
 
     return ret;
