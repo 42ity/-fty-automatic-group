@@ -430,7 +430,13 @@ static std::string byTag(const Group::Condition& cond)
     }
 
     if (!opAdditional.empty()) {
-        return fmt::format(sqlAdditional, "sql"_a = ret, "op"_a = opAdditional, "val"_a = value(cond));
+        // clang-format off
+        return fmt::format(sqlAdditional,
+            "sql"_a = ret,
+            "op"_a  = opAdditional,
+            "val"_a = value(cond)
+        );
+        // clang-format on
     }
 
     return ret;
