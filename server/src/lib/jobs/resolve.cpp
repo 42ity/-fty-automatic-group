@@ -84,7 +84,9 @@ static std::vector<uint64_t> vmLinkTypes()
 static std::string byName(const Group::Condition& cond)
 {
     static std::string sql = R"(
-        SELECT id_asset_element FROM t_bios_asset_ext_attributes WHERE keytag='name' AND value like 'rack')";
+        SELECT id_asset_element
+        FROM t_bios_asset_ext_attributes
+        WHERE keytag='name' AND value {op} '{val}')";
 
     // clang-format off
     return fmt::format(sql,
