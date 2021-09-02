@@ -84,9 +84,7 @@ static std::vector<uint64_t> vmLinkTypes()
 static std::string byName(const Group::Condition& cond)
 {
     static std::string sql = R"(
-        SELECT id_asset_element
-        FROM t_bios_asset_ext_attributes
-        WHERE keytag='name' AND value {op} '{val}')";
+        SELECT id_asset_element FROM t_bios_asset_ext_attributes WHERE keytag='name' AND value like 'rack')";
 
     // clang-format off
     return fmt::format(sql,
@@ -396,28 +394,87 @@ static std::string byHostedBy(const Group::Condition& cond)
 
 static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond);
 
+/*
+
+SELECT l.id_asset_device_dest FROM t_bios_asset_link AS l
+LEFT JOIN t_bios_asset_element AS e ON e.id_asset_element = l.id_asset_device_src
+
+select r.id_asset_element from t_bios_asset_element_tag_relation as r LEFT JOIN t_bios_tag as tag on r.id_tag = tag.id_tag and tag.name = 'black';
+
+SELECT r.id_asset_element 
+select r.id_asset_element from t_bios_asset_element_tag_relation as r inner JOIN t_bios_tag as tag on r.id_tag = tag.id_tag where tag.name like 'whitess';
+
+SELECT r.id_asset_element 
+FROM t_bios_asset_element_tag_relation AS r 
+INNER JOIN t_bios_tag AS tag 
+ON r.id_tag = tag.id_tag 
+WHERE tag.name {op} '{val}'
+AND r.id_asset_element NOT IN (
+    SELECT r.id_asset_element 
+    FROM t_bios_asset_element_tag_relation AS r 
+    INNER JOIN t_bios_tag AS tag 
+    ON r.id_tag = tag.id_tag 
+    WHERE tag.name {op} '{val}'
+)
+
+SELECT DISTINCT r.id_asset_element 
+FROM t_bios_asset_element_tag_relation AS r 
+INNER JOIN t_bios_tag AS tag 
+ON r.id_tag = tag.id_tag 
+WHERE tag.name <> 'black'
+AND r.id_asset_element NOT IN (
+    SELECT r.id_asset_element 
+    FROM t_bios_asset_element_tag_relation AS r 
+    INNER JOIN t_bios_tag AS tag 
+    ON r.id_tag = tag.id_tag 
+    WHERE tag.name = 'black'
+);
+*/
+
 static std::string byTag(const Group::Condition& cond)
 {
-    static std::string sqlTagId = R"(
-        SELECT id_tag
-        FROM t_bios_tag
-        WHERE name {op} '{val}'
-    )";
-
     static std::string sql = R"(
-        SELECT id_asset_element
-        FROM t_bios_asset_elemetn_tag_relation
-        WHERE id_tag={sqlTag} 
+        SELECT DISTINCT r.id_asset_element 
+        FROM t_bios_asset_element_tag_relation AS r 
+        INNER JOIN t_bios_tag AS tag 
+        ON r.id_tag = tag.id_tag 
+        WHERE tag.name {op} '{val}'
     )";
 
     // clang-format off
-    return fmt::format(sql,
-        "sqlTag"_a = fmt::format(sqlTagId,
-            "op"_a  = op(cond),
-            "val"_a = value(cond)
-        )
+    std::string ret = fmt::format(sql,
+        "op"_a  = op(cond),
+        "val"_a = value(cond)
     );
     // clang-format on
+
+    static std::string sqlAdditional = R"(
+        {sql}
+        AND r.id_asset_element NOT IN (
+            SELECT r.id_asset_element 
+            FROM t_bios_asset_element_tag_relation AS r 
+            INNER JOIN t_bios_tag AS tag 
+            ON r.id_tag = tag.id_tag 
+            WHERE tag.name {op} '{val}'
+        )
+    )";
+
+    std::stringstream ss;
+    if(cond.op == Group::ConditionOp::IsNot){
+        ss << Group::ConditionOp::Is;
+    } else if(cond.op == Group::ConditionOp::DoesNotContain){
+        ss << Group::ConditionOp::Contains;
+    }
+
+    if(!ss.str().empty()){
+        return fmt::format(sqlAdditional,
+            "sql"_a = ret,
+            "op"_a  = ss.str(),
+            "val"_a = value(cond)
+        );
+    }
+
+    return ret;
 }
 
 // =====================================================================================================================
