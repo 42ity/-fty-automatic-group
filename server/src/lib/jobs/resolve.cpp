@@ -413,34 +413,23 @@ static std::string byTag(const Group::Condition& cond)
     );
     // clang-format on
 
-    static std::string sqlAdditional = R"(
-        {sql}
-        AND r.id_asset_element NOT IN (
-            SELECT r.id_asset_element 
-            FROM t_bios_asset_element_tag_relation AS r 
-            INNER JOIN t_bios_tag AS tag 
-            ON r.id_tag = tag.id_tag 
-            WHERE tag.name {op} '{val}'
-        )
-    )";
-
-    std::string opAdditional;
+    auto condNot = cond;
     if (cond.op == Group::ConditionOp::IsNot) {
-        opAdditional = "=";
+        condNot.op = Group::ConditionOp::Is;
     } else if (cond.op == Group::ConditionOp::DoesNotContain) {
-        opAdditional = "like";
+        condNot.op = Group::ConditionOp::Contains;
     }
 
-    if (!opAdditional.empty()) {
+    if (condNot.op != cond.op) {
         // clang-format off
-        return fmt::format(sqlAdditional,
-            "sql"_a = ret,
-            "op"_a  = opAdditional,
-            "val"_a = value(cond)
+        std::string sqlNot = fmt::format(sql,
+            "op"_a  = op(condNot),
+            "val"_a = value(condNot)
         );
         // clang-format on
-    }
 
+        ret += " AND r.id_asset_element NOT IN (" + sqlNot + ")";
+    }
     return ret;
 }
 
