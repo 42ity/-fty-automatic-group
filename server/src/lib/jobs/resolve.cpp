@@ -398,13 +398,6 @@ static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& 
 
 static std::string byTag(const Group::Condition& cond)
 {
-    auto condNot = cond;
-    if (cond.op == Group::ConditionOp::IsNot) {
-        condNot.op = Group::ConditionOp::Is;
-    } else if (cond.op == Group::ConditionOp::DoesNotContain) {
-        condNot.op = Group::ConditionOp::Contains;
-    }
-
     static std::string sql = R"(
         SELECT DISTINCT r.id_asset_element 
         FROM t_bios_asset_element_tag_relation AS r 
@@ -413,7 +406,13 @@ static std::string byTag(const Group::Condition& cond)
         WHERE tag.name {op} '{val}'
     )";
 
-    if (condNot.op != cond.op) {
+    if (cond.op == Group::ConditionOp::IsNot || cond.op == Group::ConditionOp::DoesNotContain) {
+        auto condNot = cond;
+        if (cond.op == Group::ConditionOp::IsNot) {
+            condNot.op = Group::ConditionOp::Is;
+        } else if (cond.op == Group::ConditionOp::DoesNotContain) {
+            condNot.op = Group::ConditionOp::Contains;
+        }
         // clang-format off
         std::string sqlFormat = fmt::format(sql,
             "op"_a  = op(condNot),
