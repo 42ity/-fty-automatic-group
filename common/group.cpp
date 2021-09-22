@@ -94,6 +94,8 @@ std::ostream& operator<<(std::ostream& ss, fty::Group::Fields value)
                 return "hosted-by";
             case fty::Group::Fields::Group:
                 return "group";
+            case fty::Group::Fields::Tag:
+                return "tags";
             case fty::Group::Fields::Unknown:
                 return "unknown";
         }
@@ -129,6 +131,8 @@ std::istream& operator>>(std::istream& ss, fty::Group::Fields& value)
         value = fty::Group::Fields::HostedBy;
     } else if (strval == "group") {
         value = fty::Group::Fields::Group;
+    } else if (strval == "tags") {
+        value = fty::Group::Fields::Tag;
     }
     return ss;
 }

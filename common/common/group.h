@@ -34,7 +34,8 @@ struct Group : public pack::Node
         IPAddress,
         InternalName,
         HostedBy,
-        Group
+        Group,
+        Tag
     };
 
     struct Condition : public pack::Node

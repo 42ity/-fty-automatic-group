@@ -396,6 +396,45 @@ static std::string byHostedBy(const Group::Condition& cond)
 
 static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond);
 
+static std::string byTag(const Group::Condition& cond)
+{
+    static std::string sql = R"(
+        SELECT DISTINCT r.id_asset_element 
+        FROM t_bios_asset_element_tag_relation AS r 
+        INNER JOIN t_bios_tag AS tag 
+        ON r.id_tag = tag.id_tag 
+        WHERE tag.name {op} '{val}'
+    )";
+
+    if (cond.op == Group::ConditionOp::IsNot || cond.op == Group::ConditionOp::DoesNotContain) {
+        auto condNot = cond;
+        if (cond.op == Group::ConditionOp::IsNot) {
+            condNot.op = Group::ConditionOp::Is;
+        } else if (cond.op == Group::ConditionOp::DoesNotContain) {
+            condNot.op = Group::ConditionOp::Contains;
+        }
+        // clang-format off
+        std::string sqlFormat = fmt::format(sql,
+            "op"_a  = op(condNot),
+            "val"_a = value(condNot)
+        );
+
+        return fmt::format(R"( 
+            SELECT id_asset_element
+            FROM t_bios_asset_element
+            WHERE id_asset_element NOT IN ({})
+        )", sqlFormat);
+        // clang-format on
+    }
+
+    // clang-format off
+    return fmt::format(sql,
+        "op"_a  = op(cond),
+        "val"_a = value(cond)
+    );
+    // clang-format on
+}
+
 // =====================================================================================================================
 
 static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group)
@@ -449,6 +488,9 @@ static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group
                     } else {
                         subQueries.emplace_back(byGroupId(conn, cond));
                     }
+                    break;
+                case Group::Fields::Tag:
+                    subQueries.emplace_back(byTag(cond));
                     break;
                 case Group::Fields::Unknown:
                 default:
