@@ -77,9 +77,10 @@ struct DBData : pack::Node
         pack::String           extName = FIELD("ext-name");
         pack::ObjectList<Item> items   = FIELD("items");
         pack::StringMap        attrs   = FIELD("attrs");
+        pack::StringList       tags    = FIELD("tags");
 
         using pack::Node::Node;
-        META(Item, type, name, extName, items, attrs);
+        META(Item, type, name, extName, items, attrs, tags);
     };
 
     struct Link : public pack::Node
@@ -212,6 +213,18 @@ static void createItem(fty::db::Connection& conn, const DBData::Item& item, std:
         if (auto ret = fty::asset::db::insertIntoAssetExtAttributes(conn, id, {{attr.first, attr.second}}, true);
             !ret) {
             throw std::runtime_error(ret.error());
+        }
+    }
+
+    for (const auto& tag: item.tags) {
+        if (conn.execute("INSERT INTO t_bios_tag (name) VALUES(:tag)", "tag"_p = tag)) {
+            auto tagId = conn.lastInsertId();
+            conn.execute(R"(
+                INSERT INTO t_bios_asset_element_tag_relation
+                    (id_asset_element, id_tag)
+                VALUES
+                    (:assetId, :tagId)
+            )", "assetId"_p = id, "tagId"_p = tagId);
         }
     }
 
