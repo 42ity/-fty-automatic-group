@@ -20,12 +20,12 @@
  */
 
 #include "common/message-bus.h"
-#include <fty_log.h>
 #include <fty_common_messagebus_exception.h>
 #include <fty_common_messagebus_interface.h>
 #include <fty_common_messagebus_message.h>
+#include <fty_log.h>
 
-namespace fty {
+namespace fty::groups {
 
 MessageBus::MessageBus() = default;
 
@@ -117,4 +117,4 @@ Expected<void> MessageBus::subscribe(const std::string& queue, std::function<voi
     }
 }
 
-} // namespace fty
+} // namespace fty::groups

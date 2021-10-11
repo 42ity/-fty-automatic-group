@@ -22,7 +22,7 @@
 #include "common/message.h"
 #include <fty_common_messagebus_message.h>
 
-namespace fty {
+namespace fty::groups {
 
 // ===========================================================================================================
 
@@ -72,7 +72,7 @@ messagebus::Message Message::toMessageBus() const
     msg.metaData()[messagebus::Message::CORRELATION_ID] = meta.correlationId;
     msg.metaData()[messagebus::Message::STATUS]         = meta.status.asString();
 
-    for(const auto& el : userData) {
+    for (const auto& el : userData) {
         msg.userData().emplace_back(el);
     }
 
@@ -88,11 +88,11 @@ void Message::setData(const std::string& data)
 void Message::setData(const std::list<std::string>& data)
 {
     userData.clear();
-    for(const auto& str : data) {
+    for (const auto& str : data) {
         userData.append(str);
     }
 }
 
 // ===========================================================================================================
 
-} // namespace fty
+} // namespace fty::groups

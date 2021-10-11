@@ -1,8 +1,8 @@
 #include "remove.h"
-#include <fty/rest/component.h>
+#include "common/commands.h"
 #include "common/message-bus.h"
 #include "group-rest.h"
-#include "common/commands.h"
+#include <fty/rest/component.h>
 
 namespace fty::agroup {
 
@@ -18,7 +18,7 @@ unsigned Remove::run()
         throw rest::errors::RequestParamRequired("id");
     }
 
-    fty::MessageBus bus;
+    fty::groups::MessageBus bus;
     if (auto res = bus.init(AgentName); !res) {
         throw rest::errors::Internal(res.error());
     }
@@ -36,7 +36,7 @@ unsigned Remove::run()
     }
 
     commands::remove::Out out;
-    auto info = pack::json::deserialize(ret->userData[0], out);
+    auto                  info = pack::json::deserialize(ret->userData[0], out);
     if (!info) {
         throw rest::errors::Internal(info.error());
     }
@@ -44,6 +44,6 @@ unsigned Remove::run()
     return HTTP_NO_CONTENT;
 }
 
-}
+} // namespace fty::agroup
 
 registerHandler(fty::agroup::Remove)

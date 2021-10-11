@@ -34,7 +34,7 @@ class Message;
 
 // =====================================================================================================================
 
-namespace fty {
+namespace fty::groups {
 
 /// Common message bus temporary wrapper
 class MessageBus
@@ -51,7 +51,7 @@ public:
     [[nodiscard]] Expected<Message> send(const std::string& queue, const Message& msg);
     [[nodiscard]] Expected<void>    publish(const std::string& queue, const Message& msg);
     [[nodiscard]] Expected<void>    reply(const std::string& queue, const Message& req, const Message& answ);
-    [[nodiscard]] Expected<Message> receive(const std::string& queue);   
+    [[nodiscard]] Expected<Message> receive(const std::string& queue);
 
     template <typename Func, typename Cls>
     [[nodiscard]] Expected<void> subscribe(const std::string& queue, Func&& fnc, Cls* cls)
@@ -70,4 +70,4 @@ private:
     std::string                             m_actorName;
 };
 
-} // namespace fty
+} // namespace fty::groups
