@@ -30,7 +30,7 @@ unsigned Edit::run()
 
     group.id = fty::convert<uint64_t>(*strIdPrt);
 
-    fty::MessageBus bus;
+    fty::groups::MessageBus bus;
     if (auto res = bus.init(AgentName); !res) {
         throw rest::errors::Internal(res.error());
     }

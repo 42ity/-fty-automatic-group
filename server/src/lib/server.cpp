@@ -49,7 +49,7 @@ void Server::reloadConfig()
     Config::instance().reload();
 }
 
-void Server::process(const Message& msg)
+void Server::process(const groups::Message& msg)
 {
     logDebug("Automatic group: got message {}", msg.dump());
     if (msg.meta.subject == commands::create::Subject) {
@@ -67,7 +67,7 @@ void Server::process(const Message& msg)
     }
 }
 
-void Server::srrProcess(const Message& msg)
+void Server::srrProcess(const groups::Message& msg)
 {
     logDebug("Automatic group: got SRR request {}", msg.dump());
     m_pool.pushWorker<job::SrrProcess>(msg, m_bus);

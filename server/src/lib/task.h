@@ -40,10 +40,10 @@ template <typename T>
 class Response : public pack::Node
 {
 public:
-    pack::String                error   = FIELD("error");
-    pack::Enum<Message::Status> status  = FIELD("status");
-    pack::String                subject = FIELD("subject");
-    T                           out     = FIELD("out");
+    pack::String                        error   = FIELD("error");
+    pack::Enum<groups::Message::Status> status  = FIELD("status");
+    pack::String                        subject = FIELD("subject");
+    T                                   out     = FIELD("out");
 
 public:
     using pack::Node::Node;
@@ -53,18 +53,18 @@ public:
     void setError(const std::string& errMsg)
     {
         error  = errMsg;
-        status = Message::Status::Error;
+        status = groups::Message::Status::Error;
     }
 
-    operator Message()
+    operator groups::Message()
     {
-        Message msg;
+        groups::Message msg;
         msg.meta.status = status;
         if (subject.hasValue()) {
             msg.meta.subject = subject;
         }
 
-        if (status == Message::Status::Ok) {
+        if (status == groups::Message::Status::Ok) {
             if (out.hasValue()) {
                 msg.setData(*pack::json::serialize(out));
             } else {
@@ -87,8 +87,8 @@ template <>
 class Response<void> : public pack::Node
 {
 public:
-    pack::String                error  = FIELD("error");
-    pack::Enum<Message::Status> status = FIELD("status");
+    pack::String                        error  = FIELD("error");
+    pack::Enum<groups::Message::Status> status = FIELD("status");
 
 public:
     using pack::Node::Node;
@@ -98,14 +98,14 @@ public:
     void setError(const std::string& errMsg)
     {
         error  = errMsg;
-        status = Message::Status::Error;
+        status = groups::Message::Status::Error;
     }
 
-    operator Message()
+    operator groups::Message()
     {
-        Message msg;
+        groups::Message msg;
         msg.meta.status = status;
-        if (status != Message::Status::Ok) {
+        if (status != groups::Message::Status::Ok) {
             msg.setData(error);
         }
         return msg;
@@ -118,7 +118,7 @@ template <typename T, typename InputT, typename ResponseT = void>
 class Task : public fty::Task<T>
 {
 public:
-    Task(const Message& in, MessageBus& bus)
+    Task(const groups::Message& in, groups::MessageBus& bus)
         : m_in(in)
         , m_bus(&bus)
     {
@@ -137,7 +137,7 @@ public:
                     }
 
                     InputT cmd;
-                    auto ret = pack::json::deserialize(m_in.userData[0], cmd);
+                    auto   ret = pack::json::deserialize(m_in.userData[0], cmd);
                     if (!ret) {
                         throw Error("Wrong input data: format of payload is incorrect");
                     }
@@ -154,7 +154,7 @@ public:
                 throw Error("Not a correct task");
             }
 
-            response.status = Message::Status::Ok;
+            response.status = groups::Message::Status::Ok;
             if (auto res = m_bus->reply(fty::Channel, m_in, response); !res) {
                 logError(res.error());
             }
@@ -182,8 +182,8 @@ public:
     }
 
 protected:
-    Message     m_in;
-    MessageBus* m_bus = nullptr;
+    groups::Message     m_in;
+    groups::MessageBus* m_bus = nullptr;
 };
 
 } // namespace fty::job

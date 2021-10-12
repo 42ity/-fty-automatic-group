@@ -1,9 +1,8 @@
 #include "srr.h"
 #include "common/message.h"
-#include "srr/save.h"
-#include "srr/restore.h"
 #include "srr/reset.h"
-
+#include "srr/restore.h"
+#include "srr/save.h"
 #include <fty_common_messagebus.h>
 #include <fty_srr_dto.h>
 
@@ -14,7 +13,7 @@ void SrrProcess::run()
     using namespace dto;
     using namespace dto::srr;
 
-    if(!m_bus) {
+    if (!m_bus) {
         logError("No messagebus instance available");
     }
 
@@ -24,7 +23,7 @@ void SrrProcess::run()
     srrProcessor.restoreHandler = std::bind(&job::srr::restore, std::placeholders::_1);
     srrProcessor.resetHandler   = std::bind(&job::srr::reset, std::placeholders::_1);
 
-    Message resp;
+    groups::Message resp;
     resp.meta.subject = m_in.meta.subject;
     resp.meta.to      = m_in.meta.replyTo;
     resp.meta.replyTo = m_in.meta.to;
@@ -33,8 +32,8 @@ void SrrProcess::run()
 
     try {
         // Get request
-        auto legacyMsg = m_in.toMessageBus();
-        UserData data = legacyMsg.userData();
+        auto     legacyMsg = m_in.toMessageBus();
+        UserData data      = legacyMsg.userData();
         Query    query;
 
         data >> query;
@@ -47,19 +46,19 @@ void SrrProcess::run()
 
         resp.setData(respData);
 
-        resp.meta.status = Message::Status::Ok;
+        resp.meta.status = groups::Message::Status::Ok;
 
         if (auto ans = m_bus->reply(replyTo, m_in, resp); !ans) {
             throw Error("Sending reply failed");
         }
     } catch (const Error& err) {
-            logError("Error: {}", err.what());
-            resp.meta.status = Message::Status::Error;
-            resp.setData(err.what());
-            if (auto res = m_bus->reply(fty::Channel, m_in, resp); !res) {
-                logError(res.error());
-            }
+        logError("Error: {}", err.what());
+        resp.meta.status = groups::Message::Status::Error;
+        resp.setData(err.what());
+        if (auto res = m_bus->reply(fty::Channel, m_in, resp); !res) {
+            logError(res.error());
         }
+    }
 }
 
 void SrrProcess::operator()()
@@ -67,4 +66,4 @@ void SrrProcess::operator()()
     run();
 }
 
-}
+} // namespace fty::job

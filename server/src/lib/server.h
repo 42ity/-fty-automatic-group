@@ -16,13 +16,13 @@ public:
     Event<> stop;
 
 private:
-    void process(const Message& msg);
-    void srrProcess(const Message& msg);
+    void process(const groups::Message& msg);
+    void srrProcess(const groups::Message& msg);
     void doStop();
     void reloadConfig();
 
 private:
-    MessageBus m_bus;
+    groups::MessageBus m_bus;
     ThreadPool m_pool;
 
     Slot<> m_stopSlot       = {&Server::doStop, this};

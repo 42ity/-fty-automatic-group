@@ -25,12 +25,12 @@ unsigned Resolve::run()
         }
     }
 
-    fty::MessageBus bus;
+    fty::groups::MessageBus bus;
     if (auto res = bus.init(AgentName); !res) {
         throw rest::errors::Internal(res.error());
     }
 
-    fty::Message msg = message(fty::commands::resolve::Subject);
+    fty::groups::Message msg = message(fty::commands::resolve::Subject);
 
     fty::commands::resolve::In in;
     if (jsonBody.empty()) {
