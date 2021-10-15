@@ -146,7 +146,7 @@ TEST_CASE("Create")
         {
             std::string json = R"(
                 {
-                    "name": "By Type",
+                    "name": "By Type"
                 }
             )";
             fty::Group  group;
@@ -185,7 +185,7 @@ TEST_CASE("Create")
                     "conditions": [
                         {
                             "field": "type",
-                            "operator": "IS",
+                            "operator": "IS"
                         }
                     ],
                     "operator": "OR"
@@ -193,7 +193,7 @@ TEST_CASE("Create")
             }
         )";
         fty::Group  group;
-        pack::json::deserialize(json, group);
+        auto ret = pack::json::deserialize(json, group);
 
         fty::job::Create create;
         fty::Group       created;
