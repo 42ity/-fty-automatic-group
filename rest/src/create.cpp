@@ -18,7 +18,7 @@ unsigned Create::run()
         throw rest::errors::BadInput("Group payload is empty");
     }
 
-    fty::MessageBus bus;
+    fty::groups::MessageBus bus;
     if (auto res = bus.init(AgentName); !res) {
         throw rest::errors::Internal(res.error());
     }

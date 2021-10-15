@@ -20,12 +20,12 @@
 */
 
 #include "read.h"
-#include <fty/rest/audit-log.h>
-#include <fty/rest/component.h>
-#include <fty_common_asset_types.h>
 #include "common/commands.h"
 #include "common/message-bus.h"
 #include "group-rest.h"
+#include <fty/rest/audit-log.h>
+#include <fty/rest/component.h>
+#include <fty_common_asset_types.h>
 
 namespace fty::agroup {
 
@@ -41,12 +41,12 @@ unsigned Read::run()
         throw rest::errors::RequestParamRequired("id");
     }
 
-    fty::MessageBus bus;
+    fty::groups::MessageBus bus;
     if (auto res = bus.init(AgentName); !res) {
         throw rest::errors::Internal(res.error());
     }
 
-    fty::Message msg = message(fty::commands::read::Subject);
+    fty::groups::Message msg = message(fty::commands::read::Subject);
 
     fty::commands::read::In in;
     in.id = fty::convert<uint16_t>(*strIdPrt);
@@ -70,6 +70,6 @@ unsigned Read::run()
     return HTTP_OK;
 }
 
-} // namespace fty::asset
+} // namespace fty::agroup
 
 registerHandler(fty::agroup::Read)

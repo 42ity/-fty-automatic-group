@@ -20,8 +20,8 @@
 */
 
 #pragma once
-#include <pack/pack.h>
 #include <list>
+#include <pack/pack.h>
 #include <string>
 
 // =====================================================================================================================
@@ -32,7 +32,7 @@ class Message;
 
 // =====================================================================================================================
 
-namespace fty {
+namespace fty::groups {
 
 /// Common message bus message temporary wrapper
 class Message : public pack::Node
@@ -71,19 +71,19 @@ public:
 public:
     explicit Message(const messagebus::Message& msg);
     messagebus::Message toMessageBus() const;
-    void setData(const std::string& data);
-    void setData(const std::list<std::string>& data);
+    void                setData(const std::string& data);
+    void                setData(const std::list<std::string>& data);
 };
 
 inline std::ostream& operator<<(std::ostream& ss, Message::Status status)
 {
     switch (status) {
-    case Message::Status::Ok:
-        ss << "ok";
-        break;
-    case Message::Status::Error:
-        ss << "ko";
-        break;
+        case Message::Status::Ok:
+            ss << "ok";
+            break;
+        case Message::Status::Error:
+            ss << "ko";
+            break;
     }
     return ss;
 }
@@ -100,6 +100,6 @@ inline std::istream& operator>>(std::istream& ss, Message::Status& status)
     return ss;
 }
 
-} // namespace fty
+} // namespace fty::groups
 
 // =====================================================================================================================

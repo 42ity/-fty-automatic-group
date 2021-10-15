@@ -1,10 +1,10 @@
 #include "list.h"
-#include <fty/rest/audit-log.h>
-#include <fty/rest/component.h>
-#include <fty_common_asset_types.h>
 #include "common/commands.h"
 #include "common/message-bus.h"
 #include "group-rest.h"
+#include <fty/rest/audit-log.h>
+#include <fty/rest/component.h>
+#include <fty_common_asset_types.h>
 
 namespace fty::agroup {
 
@@ -15,12 +15,12 @@ unsigned List::run()
         throw rest::Error(ret.error());
     }
 
-    fty::MessageBus bus;
+    fty::groups::MessageBus bus;
     if (auto res = bus.init(AgentName); !res) {
         throw rest::errors::Internal(res.error());
     }
 
-    fty::Message msg = message(fty::commands::list::Subject);
+    fty::groups::Message msg = message(fty::commands::list::Subject);
 
     auto ret = bus.send(fty::Channel, msg);
     if (!ret) {
@@ -28,15 +28,15 @@ unsigned List::run()
     }
 
     commands::list::Out listOut;
-    auto info = pack::json::deserialize(ret->userData[0], listOut);
+    auto                info = pack::json::deserialize(ret->userData[0], listOut);
     if (!info) {
         throw rest::errors::Internal(info.error());
     }
 
     if (listOut.size()) {
         pack::ObjectList<fty::commands::read::Out> out;
-        for(const auto& it: listOut) {
-            fty::Message readMsg = message(fty::commands::read::Subject);
+        for (const auto& it : listOut) {
+            fty::groups::Message readMsg = message(fty::commands::read::Subject);
 
             fty::commands::read::In in;
             in.id = it.id;
@@ -49,7 +49,7 @@ unsigned List::run()
             }
 
             commands::read::Out group;
-            auto r = pack::json::deserialize(readRet->userData[0], group);
+            auto                r = pack::json::deserialize(readRet->userData[0], group);
             if (!r) {
                 throw rest::errors::Internal(r.error());
             }
@@ -63,6 +63,6 @@ unsigned List::run()
     return HTTP_OK;
 }
 
-} // namespace fty::asset
+} // namespace fty::agroup
 
 registerHandler(fty::agroup::List)
