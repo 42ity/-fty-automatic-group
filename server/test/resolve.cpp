@@ -1891,3 +1891,47 @@ TEST_CASE("Resolve by Group")
         FAIL(ex.what());
     }
 }
+
+TEST_CASE("Resolve by Tags")
+{
+    try {
+        fty::SampleDb db(R"(
+            items:
+                - type : Datacenter
+                  name : datacenter
+                  items:
+                    - type     : Server
+                      name     : srv11
+                      ext-name : srv11
+                      tags     : [tag1, tag2, tag3]
+            )");
+
+        // And operator | Contains
+        {
+            std::string group = R"(
+                name  : ByTag
+                rules :
+                    operator  : AND
+                    conditions:
+                      - field    : tags
+                        operator : IS
+                        value    : tag2
+            )";
+
+            Group groupLink;
+
+            if (auto ret = pack::yaml::deserialize(group, groupLink); !ret) {
+                FAIL(ret.error());
+            }
+            auto g    = groupLink.create();
+            auto info = g.resolve();
+            REQUIRE(info.size() == 1);
+            CHECK(info[0].name == "srv11");
+            g.remove();
+        }
+
+        CHECK(fty::Storage::clear());
+    } catch (const std::exception& ex) {
+        FAIL(ex.what());
+    }
+}
