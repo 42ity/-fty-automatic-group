@@ -1,7 +1,7 @@
 #include "db.h"
-#include <test-db/test-db.h>
-#include <pack/pack.h>
 #include <iostream>
+#include <pack/pack.h>
+#include <test-db/test-db.h>
 
 namespace fty {
 
@@ -216,15 +216,29 @@ static void createItem(fty::db::Connection& conn, const DBData::Item& item, std:
         }
     }
 
-    for (const auto& tag: item.tags) {
-        if (conn.execute("INSERT INTO t_bios_tag (name) VALUES(:tag)", "tag"_p = tag)) {
+    for (const auto& tag : item.tags) {
+        if (const auto row = conn.select("SELECT * FROM t_bios_tag WHERE name=:tag", "tag"_p = tag);
+            !row.empty()) {
+            std::cout << "find: " << row[0].get("name") << "\n";
+
+            conn.execute(R"(
+                INSERT INTO t_bios_asset_element_tag_relation
+                    (id_asset_element, id_tag)
+                VALUES
+                    (:assetId, :tagId)
+            )",
+                "assetId"_p = id, "tagId"_p = row[0].get<u_int64_t>("id_tag"));
+
+        } else if (conn.execute("INSERT INTO t_bios_tag (name) VALUES(:tag)", "tag"_p = tag)) {
+            std::cout << tag << "\n";
             auto tagId = conn.lastInsertId();
             conn.execute(R"(
                 INSERT INTO t_bios_asset_element_tag_relation
                     (id_asset_element, id_tag)
                 VALUES
                     (:assetId, :tagId)
-            )", "assetId"_p = id, "tagId"_p = tagId);
+            )",
+                "assetId"_p = id, "tagId"_p = tagId);
         }
     }
 
@@ -241,7 +255,7 @@ static void createItem(fty::db::Connection& conn, const DBData::Item& item, std:
 uint16_t linkId(const std::string& link)
 {
     static std::map<std::string, uint16_t> lnks = []() {
-        fty::db::Connection                 conn;
+        fty::db::Connection             conn;
         std::map<std::string, uint16_t> ret;
 
         for (const auto& row : conn.select("select * from t_bios_asset_link_type")) {
