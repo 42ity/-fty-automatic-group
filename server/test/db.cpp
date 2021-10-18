@@ -219,7 +219,6 @@ static void createItem(fty::db::Connection& conn, const DBData::Item& item, std:
     for (const auto& tag : item.tags) {
         if (const auto row = conn.select("SELECT * FROM t_bios_tag WHERE name=:tag", "tag"_p = tag);
             !row.empty()) {
-            std::cout << "find: " << row[0].get("name") << "\n";
 
             conn.execute(R"(
                 INSERT INTO t_bios_asset_element_tag_relation
@@ -230,7 +229,6 @@ static void createItem(fty::db::Connection& conn, const DBData::Item& item, std:
                 "assetId"_p = id, "tagId"_p = row[0].get<u_int64_t>("id_tag"));
 
         } else if (conn.execute("INSERT INTO t_bios_tag (name) VALUES(:tag)", "tag"_p = tag)) {
-            std::cout << tag << "\n";
             auto tagId = conn.lastInsertId();
             conn.execute(R"(
                 INSERT INTO t_bios_asset_element_tag_relation

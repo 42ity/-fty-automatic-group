@@ -1958,8 +1958,9 @@ TEST_CASE("Resolve by Tags")
             }
             auto g    = groupLink.create();
             auto info = g.resolve();
-            // REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "srv3");
+            REQUIRE(info.size() == 2);
+            CHECK(info[0].name == "datacenter");
+            CHECK(info[1].name == "srv3");
             g.remove();
         }
 
@@ -2006,9 +2007,10 @@ TEST_CASE("Resolve by Tags")
             }
             auto g    = groupLink.create();
             auto info = g.resolve();
-            REQUIRE(info.size() == 2);
-            CHECK(info[0].name == "srv2");
-            CHECK(info[1].name == "srv3");
+            REQUIRE(info.size() == 3);
+            CHECK(info[0].name == "datacenter");
+            CHECK(info[1].name == "srv2");
+            CHECK(info[2].name == "srv3");
             g.remove();
         }
 
