@@ -1914,9 +1914,7 @@ TEST_CASE("Resolve by Tags")
                       tags     : [blue]
             )");
 
-        // And operator | Contains
-        {
-            std::string group = R"(
+        std::string groupSql = R"(
                 name  : ByTag
                 rules :
                     operator  : AND
@@ -1926,13 +1924,25 @@ TEST_CASE("Resolve by Tags")
                         value    : black
             )";
 
-            Group groupLink;
-
-            if (auto ret = pack::yaml::deserialize(group, groupLink); !ret) {
+        // And operator | Contains
+        {
+            groupSql = R"(
+                name  : ByTag
+                rules :
+                    operator  : AND
+                    conditions:
+                      - field    : tags
+                        operator : CONTAINS
+                        value    : black
+            )";
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
                 FAIL(ret.error());
             }
-            auto g    = groupLink.create();
+
+            auto g    = group.create();
             auto info = g.resolve();
+
             REQUIRE(info.size() == 2);
             CHECK(info[0].name == "srv1");
             CHECK(info[1].name == "srv2");
@@ -1941,7 +1951,7 @@ TEST_CASE("Resolve by Tags")
 
         // And operator | DOESNOTCONTAIN
         {
-            std::string group = R"(
+            groupSql = R"(
                 name  : ByTag
                 rules :
                     operator  : AND
@@ -1950,14 +1960,14 @@ TEST_CASE("Resolve by Tags")
                         operator : DOESNOTCONTAIN
                         value    : black
             )";
-
-            Group groupLink;
-
-            if (auto ret = pack::yaml::deserialize(group, groupLink); !ret) {
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
                 FAIL(ret.error());
             }
-            auto g    = groupLink.create();
+
+            auto g    = group.create();
             auto info = g.resolve();
+
             REQUIRE(info.size() == 2);
             CHECK(info[0].name == "datacenter");
             CHECK(info[1].name == "srv3");
@@ -1966,7 +1976,7 @@ TEST_CASE("Resolve by Tags")
 
         // And operator | Is
         {
-            std::string group = R"(
+            groupSql = R"(
                 name  : ByTag
                 rules :
                     operator  : AND
@@ -1975,14 +1985,14 @@ TEST_CASE("Resolve by Tags")
                         operator : IS
                         value    : black
             )";
-
-            Group groupLink;
-
-            if (auto ret = pack::yaml::deserialize(group, groupLink); !ret) {
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
                 FAIL(ret.error());
             }
-            auto g    = groupLink.create();
+
+            auto g    = group.create();
             auto info = g.resolve();
+
             REQUIRE(info.size() == 1);
             CHECK(info[0].name == "srv1");
             g.remove();
@@ -1990,7 +2000,7 @@ TEST_CASE("Resolve by Tags")
 
         // And operator | IsNot
         {
-            std::string group = R"(
+            groupSql = R"(
                 name  : ByTag
                 rules :
                     operator  : AND
@@ -1999,14 +2009,13 @@ TEST_CASE("Resolve by Tags")
                         operator : ISNOT
                         value    : black
             )";
-
-            Group groupLink;
-
-            if (auto ret = pack::yaml::deserialize(group, groupLink); !ret) {
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
                 FAIL(ret.error());
             }
-            auto g    = groupLink.create();
+            auto g    = group.create();
             auto info = g.resolve();
+
             REQUIRE(info.size() == 3);
             CHECK(info[0].name == "datacenter");
             CHECK(info[1].name == "srv2");

@@ -217,26 +217,21 @@ static void createItem(fty::db::Connection& conn, const DBData::Item& item, std:
     }
 
     for (const auto& tag : item.tags) {
-        if (const auto row = conn.select("SELECT * FROM t_bios_tag WHERE name=:tag", "tag"_p = tag);
-            !row.empty()) {
-
+        static auto createRelation = [&](int64_t val) {
             conn.execute(R"(
                 INSERT INTO t_bios_asset_element_tag_relation
                     (id_asset_element, id_tag)
                 VALUES
                     (:assetId, :tagId)
             )",
-                "assetId"_p = id, "tagId"_p = row[0].get<u_int64_t>("id_tag"));
+                "assetId"_p = id, "tagId"_p = val);
+        };
 
+        if (auto row = conn.select("SELECT * FROM t_bios_tag WHERE name=:tag", "tag"_p = tag); !row.empty()) {
+            createRelation(row[0].get<int64_t>("id_tag"));
         } else if (conn.execute("INSERT INTO t_bios_tag (name) VALUES(:tag)", "tag"_p = tag)) {
             auto tagId = conn.lastInsertId();
-            conn.execute(R"(
-                INSERT INTO t_bios_asset_element_tag_relation
-                    (id_asset_element, id_tag)
-                VALUES
-                    (:assetId, :tagId)
-            )",
-                "assetId"_p = id, "tagId"_p = tagId);
+            createRelation(tagId);
         }
     }
 
