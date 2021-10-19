@@ -61,19 +61,19 @@ public:
 
 TEST_CASE("Resolve by name with rules input")
 {
-  auto resolve = [](const std::string & json) -> fty::commands::resolve::Out {
-      fty::job::Resolve resolveObj;
+    auto resolve = [](const std::string& json) -> fty::commands::resolve::Out {
+        fty::job::Resolve resolveObj;
 
-      fty::commands::resolve::In  in;
-      fty::commands::resolve::Out out;
+        fty::commands::resolve::In  in;
+        fty::commands::resolve::Out out;
 
-      if (auto ret = pack::yaml::deserialize(json, in); !ret) {
-          throw std::runtime_error(ret.error());
-      }
+        if (auto ret = pack::yaml::deserialize(json, in); !ret) {
+            throw std::runtime_error(ret.error());
+        }
 
-      REQUIRE_NOTHROW(resolveObj.run(in, out));
-      return out;
-  };
+        REQUIRE_NOTHROW(resolveObj.run(in, out));
+        return out;
+    };
 
     try {
         fty::SampleDb db(R"(
@@ -100,7 +100,7 @@ TEST_CASE("Resolve by name with rules input")
 
         //"Contains"
         {
-          std::string json = R"(
+            std::string json = R"(
             {
               "rules": {
                   "operator": "AND",
@@ -114,7 +114,7 @@ TEST_CASE("Resolve by name with rules input")
               }
             }
            )";
-            auto info = resolve(json);
+            auto        info = resolve(json);
 
             REQUIRE(info.size() == 2);
             CHECK(info[0].name == "srv1");
@@ -183,7 +183,7 @@ TEST_CASE("Resolve by name with rules input")
                     ]
                 }
               }
-            )"; 
+            )";
 
             auto info = resolve(json);
 
@@ -194,7 +194,7 @@ TEST_CASE("Resolve by name with rules input")
         }
 
         //"Not exists"
-        { 
+        {
             std::string json = R"(
               {
                 "rules": {
@@ -208,12 +208,12 @@ TEST_CASE("Resolve by name with rules input")
                     ]
                 }
               }
-            )"; 
+            )";
 
             auto info = resolve(json);
 
             REQUIRE(info.size() == 0);
-        } 
+        }
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
@@ -500,7 +500,7 @@ TEST_CASE("Resolve by location 3 | find vm and hypervisors as well")
             CHECK(info[4].name == "vm1");
         }
 
-         // "Is"
+        // "Is"
         {
             cond.value = "room";
             cond.op    = fty::Group::ConditionOp::Is;
@@ -971,7 +971,7 @@ TEST_CASE("Resolve by hostname")
             auto g    = group.create();
             auto info = g.resolve();
 
-            REQUIRE(info.size() == 3); 
+            REQUIRE(info.size() == 3);
         }
 
         // Is
@@ -1523,9 +1523,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            //REQUIRE(info.size() == 1);
-            //CHECK(info[0].name == "vm1");
-            REQUIRE(info.size() == 0); //hot fix to not include VM
+            // REQUIRE(info.size() == 1);
+            // CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); // hot fix to not include VM
         }
 
         // Contains
@@ -1536,9 +1536,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            //REQUIRE(info.size() == 1);
-            //CHECK(info[0].name == "vm1");
-            REQUIRE(info.size() == 0); //hot fix to not include VM
+            // REQUIRE(info.size() == 1);
+            // CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); // hot fix to not include VM
         }
 
         //"DoesNotContain"
@@ -1548,7 +1548,7 @@ TEST_CASE("Resolve by ip address vm")
 
             auto g    = group.create();
             auto info = g.resolve();
-            //REQUIRE(info.size() == 6); //hot fix to not include VM
+            // REQUIRE(info.size() == 6); //hot fix to not include VM
             REQUIRE(info.size() == 7);
         }
 
@@ -1560,9 +1560,9 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            //REQUIRE(info.size() == 1);
-            //CHECK(info[0].name == "vm1");
-            REQUIRE(info.size() == 0); //hot fix to not include VM
+            // REQUIRE(info.size() == 1);
+            // CHECK(info[0].name == "vm1");
+            REQUIRE(info.size() == 0); // hot fix to not include VM
         }
 
         // Is not
@@ -1573,7 +1573,7 @@ TEST_CASE("Resolve by ip address vm")
             auto g    = group.create();
             auto info = g.resolve();
 
-            //REQUIRE(info.size() == 6); //hot fix to not include VM
+            // REQUIRE(info.size() == 6); //hot fix to not include VM
             REQUIRE(info.size() == 7);
         }
 
@@ -1901,32 +1901,125 @@ TEST_CASE("Resolve by Tags")
                   name : datacenter
                   items:
                     - type     : Server
-                      name     : srv11
-                      ext-name : srv11
-                      tags     : [tag1, tag2, tag3]
+                      name     : srv1
+                      ext-name : srv1
+                      tags     : [black, white]
+                    - type     : Server
+                      name     : srv2
+                      ext-name : srv2
+                      tags     : [white, blacksss]
+                    - type     : Server
+                      name     : srv3
+                      ext-name : srv3
+                      tags     : [blue]
             )");
+
+        std::string groupSql = R"(
+                name  : ByTag
+                rules :
+                    operator  : AND
+                    conditions:
+                      - field    : tags
+                        operator : CONTAINS
+                        value    : black
+            )";
 
         // And operator | Contains
         {
-            std::string group = R"(
+            groupSql = R"(
+                name  : ByTag
+                rules :
+                    operator  : AND
+                    conditions:
+                      - field    : tags
+                        operator : CONTAINS
+                        value    : black
+            )";
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
+                FAIL(ret.error());
+            }
+
+            auto g    = group.create();
+            auto info = g.resolve();
+
+            REQUIRE(info.size() == 2);
+            CHECK(info[0].name == "srv1");
+            CHECK(info[1].name == "srv2");
+            g.remove();
+        }
+
+        // And operator | DOESNOTCONTAIN
+        {
+            groupSql = R"(
+                name  : ByTag
+                rules :
+                    operator  : AND
+                    conditions:
+                      - field    : tags
+                        operator : DOESNOTCONTAIN
+                        value    : black
+            )";
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
+                FAIL(ret.error());
+            }
+
+            auto g    = group.create();
+            auto info = g.resolve();
+
+            REQUIRE(info.size() == 2);
+            CHECK(info[0].name == "datacenter");
+            CHECK(info[1].name == "srv3");
+            g.remove();
+        }
+
+        // And operator | Is
+        {
+            groupSql = R"(
                 name  : ByTag
                 rules :
                     operator  : AND
                     conditions:
                       - field    : tags
                         operator : IS
-                        value    : tag2
+                        value    : black
             )";
-
-            Group groupLink;
-
-            if (auto ret = pack::yaml::deserialize(group, groupLink); !ret) {
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
                 FAIL(ret.error());
             }
-            auto g    = groupLink.create();
+
+            auto g    = group.create();
             auto info = g.resolve();
+
             REQUIRE(info.size() == 1);
-            CHECK(info[0].name == "srv11");
+            CHECK(info[0].name == "srv1");
+            g.remove();
+        }
+
+        // And operator | IsNot
+        {
+            groupSql = R"(
+                name  : ByTag
+                rules :
+                    operator  : AND
+                    conditions:
+                      - field    : tags
+                        operator : ISNOT
+                        value    : black
+            )";
+            Group group;
+            if (auto ret = pack::yaml::deserialize(groupSql, group); !ret) {
+                FAIL(ret.error());
+            }
+            auto g    = group.create();
+            auto info = g.resolve();
+
+            REQUIRE(info.size() == 3);
+            CHECK(info[0].name == "datacenter");
+            CHECK(info[1].name == "srv2");
+            CHECK(info[2].name == "srv3");
             g.remove();
         }
 
