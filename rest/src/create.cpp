@@ -29,7 +29,7 @@ unsigned Create::run()
     if (auto ret = bus.send(fty::Channel, msg)) {
         commands::create::Out out;
         if (auto info = pack::json::deserialize(ret->userData[0], out)) {
-            m_reply << *pack::json::serialize(out);
+            m_reply << *pack::json::serialize(out, pack::Option::ValueAsString);
             return HTTP_OK;
         } else {
             throw rest::errors::Internal(info.error());
