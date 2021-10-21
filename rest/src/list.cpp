@@ -55,7 +55,7 @@ unsigned List::run()
             }
             out.append(group);
         }
-        m_reply << *pack::json::serialize(out);
+        m_reply << *pack::json::serialize(out, pack::Option::ValueAsString);
     } else {
         m_reply << "[]";
     }

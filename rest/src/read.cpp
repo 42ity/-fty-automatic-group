@@ -65,7 +65,7 @@ unsigned Read::run()
         throw rest::errors::Internal(info.error());
     }
 
-    m_reply << *pack::json::serialize(out);
+    m_reply << *pack::json::serialize(out, pack::Option::ValueAsString);
 
     return HTTP_OK;
 }
