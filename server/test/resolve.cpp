@@ -1,9 +1,9 @@
+#include <catch2/catch.hpp>
 #include "lib/jobs/resolve.h"
-#include "db.h"
 #include "lib/jobs/create.h"
 #include "lib/jobs/remove.h"
 #include "lib/storage.h"
-#include <catch2/catch.hpp>
+#include "db.h"
 
 using namespace fmt::literals;
 
@@ -42,6 +42,7 @@ public:
             REQUIRE(out.size() == 1);
             CHECK(out[0][fty::convert<std::string>(id.value())] == "Ok");
             clear();
+            CHECK(!id.hasValue());
         }
     }
 
@@ -54,7 +55,6 @@ public:
 
         in.id = id;
         REQUIRE_NOTHROW(resolve.run(in, out));
-
         return out;
     }
 };
@@ -113,8 +113,8 @@ TEST_CASE("Resolve by name with rules input")
                   ]
               }
             }
-           )";
-            auto        info = resolve(json);
+            )";
+            auto info = resolve(json);
 
             REQUIRE(info.size() == 2);
             CHECK(info[0].name == "srv1");
@@ -217,6 +217,7 @@ TEST_CASE("Resolve by name with rules input")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -319,6 +320,7 @@ TEST_CASE("Resolve by name")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -414,6 +416,7 @@ TEST_CASE("Resolve by InternalName")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -541,9 +544,9 @@ TEST_CASE("Resolve by location 3 | find vm and hypervisors as well")
             REQUIRE(info.size() == 0);
         }
 
-
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -635,9 +638,9 @@ TEST_CASE("Resolve by location")
             REQUIRE(info.size() == 0);
         }
 
-
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -724,9 +727,9 @@ TEST_CASE("Resolve by location 2")
             REQUIRE(info.size() == 0);
         }
 
-
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -784,7 +787,6 @@ TEST_CASE("Resolve by type")
             CHECK(info[1].name == "datacenter1");
         }
 
-
         // Is
         {
             cond.value = "device";
@@ -823,6 +825,7 @@ TEST_CASE("Resolve by type")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -918,6 +921,7 @@ TEST_CASE("Resolve by subtype")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1010,6 +1014,7 @@ TEST_CASE("Resolve by hostname")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1112,6 +1117,7 @@ TEST_CASE("Resolve by contact")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1180,7 +1186,6 @@ TEST_CASE("Resolve by ip address")
             CHECK(info[0].name == "srv11");
         }
 
-
         // Is not
         {
             cond.value = "127.0.0.1";
@@ -1205,6 +1210,7 @@ TEST_CASE("Resolve by ip address")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1278,11 +1284,12 @@ TEST_CASE("Resolve by name and location")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
 
-TEST_CASE("Resolve by name and location/mutlty")
+TEST_CASE("Resolve by name and location/multi")
 {
     try {
         fty::SampleDb db(R"(
@@ -1330,13 +1337,18 @@ TEST_CASE("Resolve by name and location/mutlty")
             scond2.value = "srv22";
         }
 
-        auto g    = group.create();
-        auto info = g.resolve();
+        {
+            auto g    = group.create();
+            auto info = g.resolve();
 
-        REQUIRE(info.size() == 2);
-        CHECK(info[0].name == "srv21");
-        CHECK(info[1].name == "srv22");
+            REQUIRE(info.size() == 2);
+            CHECK(info[0].name == "srv21");
+            CHECK(info[1].name == "srv22");
+        }
+
+        CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1456,7 +1468,9 @@ TEST_CASE("Resolve by hostname vm")
             REQUIRE(info.size() == 0);
         }
 
+        CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1588,7 +1602,9 @@ TEST_CASE("Resolve by ip address vm")
             REQUIRE(info.size() == 0);
         }
 
+        CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1704,7 +1720,9 @@ TEST_CASE("Resolve by hosted by")
             REQUIRE(info.size() == 0);
         }
 
+        CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -1739,7 +1757,7 @@ TEST_CASE("Resolve by Group")
 
         static std::string groupNameJaml(R"(
               name  : ByName
-              rules : 
+              rules :
                   operator  : AND
                   conditions:
                     - field    : name
@@ -1841,7 +1859,7 @@ TEST_CASE("Resolve by Group")
         {
             std::string groupTmpJaml(R"(
                 name  : LinkTmp
-                rules : 
+                rules :
                     operator  : AND
                     conditions:
                       - field    : name
@@ -1886,8 +1904,10 @@ TEST_CASE("Resolve by Group")
         }
 
         createdName.remove();
+
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }
@@ -2025,6 +2045,7 @@ TEST_CASE("Resolve by Tags")
 
         CHECK(fty::Storage::clear());
     } catch (const std::exception& ex) {
+        std::cerr << "Exception thrown: " << ex.what() << std::endl;
         FAIL(ex.what());
     }
 }

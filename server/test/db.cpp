@@ -2,6 +2,7 @@
 #include <iostream>
 #include <pack/pack.h>
 #include <test-db/test-db.h>
+//#include <filesystem>
 
 namespace fty {
 
@@ -12,45 +13,38 @@ GroupsDB::~GroupsDB()
     destroy();
 }
 
+//static
 fty::Expected<void> GroupsDB::init()
 {
     return instance()._init();
 }
 
+Expected<void> GroupsDB::_init()
+{
+    if (!inited) { // once
+        if (auto res = TestDb::init(); !res) {
+            std::cerr << res.error() << std::endl;
+            return fty::unexpected(res.error());
+        }
+        inited = true;
+    }
+    return {};
+}
+
+//static
 GroupsDB& GroupsDB::instance()
 {
     static GroupsDB inst;
     return inst;
 }
 
+//static
 void GroupsDB::destroy()
 {
-    if (instance().inited) {
-        instance().db->destroy();
-        instance().inited = false;
-    }
+    instance().inited = false;
+    TestDb::destroy();
 }
 
-Expected<void> GroupsDB::_init()
-{
-    if (inited) {
-        return {};
-    }
-
-    db = std::make_unique<TestDb>();
-
-    if (auto res = db->create()) {
-        std::string url = *res;
-        setenv("DBURL", url.c_str(), 1);
-    } else {
-        std::cerr << res.error() << std::endl;
-        return fty::unexpected(res.error());
-    }
-
-
-    inited = true;
-    return {};
-}
 
 // =====================================================================================================================
 
@@ -132,7 +126,6 @@ std::ostream& operator<<(std::ostream& ss, DBData::Types /*value*/)
 {
     return ss;
 }
-
 
 // =====================================================================================================================
 

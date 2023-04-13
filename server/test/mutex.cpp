@@ -106,7 +106,6 @@ TEST_CASE("Lock/Unlock storage Mutex", "[.]")
     REQUIRE(th3); // writer
     REQUIRE(th4);
 
-
     th1 = false;
     th2 = false;
     pool.emplace_back(std::thread([&] {
@@ -123,7 +122,6 @@ TEST_CASE("Lock/Unlock storage Mutex", "[.]")
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     REQUIRE(th1);
     REQUIRE(th2);
-
 
     th3 = false;
     th4 = false;

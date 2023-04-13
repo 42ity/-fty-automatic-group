@@ -1,4 +1,5 @@
 #pragma once
+
 #include <asset/asset-db.h>
 #include <fty_common_asset_types.h>
 #include <fty_common_db_connection.h>
@@ -17,8 +18,7 @@ struct GroupsDB
     static GroupsDB&      instance();
     static void           destroy();
 
-    bool                    inited = false;
-    std::unique_ptr<TestDb> db;
+    bool inited{false};
 
 private:
     Expected<void> _init();
