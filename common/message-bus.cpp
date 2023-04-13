@@ -33,17 +33,23 @@ Expected<void> MessageBus::init(const std::string& actorName)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     try {
-        m_bus = std::unique_ptr<messagebus::MessageBus>(messagebus::MlmMessageBus(endpoint, actorName));
-        m_bus->connect();
-        m_actorName = actorName;
+        if (!m_bus) {
+            m_bus = std::unique_ptr<messagebus::MessageBus>(messagebus::MlmMessageBus(endpoint, actorName));
+            if (!m_bus) {
+                throw std::runtime_error("MlmMessageBus initialization failed");
+            }
+            m_bus->connect();
+            m_actorName = actorName;
+        }
         return {};
-    } catch (std::exception& ex) {
+    } catch (const std::exception& ex) {
         return unexpected(ex.what());
     }
 }
 
 MessageBus::~MessageBus()
 {
+    m_bus.reset();
 }
 
 Expected<Message> MessageBus::send(const std::string& queue, const Message& msg)
