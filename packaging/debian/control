@@ -1,5 +1,5 @@
 Source: fty-automatic-group
-Maintainer: Dim <dmitrijzukov@eaton.com>
+Maintainer: fty-automatic-group Developers <opensource@eaton.com>
 Build-Depends:
     cmake (>=3.0),
     debhelper (>= 9),
