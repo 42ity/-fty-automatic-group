@@ -21,6 +21,7 @@ public:
     explicit Impl(const std::string& dbpath)
         : m_dbpath(dbpath)
     {
+        init();
     }
 
     bool inited() const
@@ -30,13 +31,15 @@ public:
 
     Expected<void> init()
     {
-        m_inited = true;
+        if (!m_inited) {
+            m_inited = true;
 
-        std::filesystem::path path(m_dbpath);
-        std::filesystem::create_directories(path.parent_path());
+            std::filesystem::path path(m_dbpath);
+            std::filesystem::create_directories(path.parent_path());
 
-        if (auto ret = pack::yaml::deserializeFile(m_dbpath, db); !ret) {
-            return unexpected(ret.error());
+            if (auto ret = pack::yaml::deserializeFile(m_dbpath, db); !ret) {
+                return unexpected(ret.error());
+            }
         }
         return {};
     }
@@ -54,7 +57,8 @@ public:
         m_inited = false;
         db.clear();
         try {
-            std::filesystem::remove(m_dbpath);
+            std::filesystem::path path(m_dbpath);
+            std::filesystem::remove(path);
         } catch (const std::exception& e) {
             return unexpected(e.what());
         }
@@ -70,6 +74,7 @@ private:
     bool        m_inited = false;
 };
 
+//static
 Storage& Storage::instance()
 {
     static Storage inst;
@@ -83,6 +88,7 @@ Storage::Storage()
 
 Storage::~Storage()
 {
+    m_impl.reset();
 }
 
 Expected<Group> Storage::byName(const std::string& name)

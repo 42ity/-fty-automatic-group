@@ -1,7 +1,7 @@
-#include "lib/jobs/create.h"
-#include "db.h"
-#include "lib/storage.h"
 #include <catch2/catch.hpp>
+#include "lib/jobs/create.h"
+#include "lib/storage.h"
+#include "db.h"
 
 TEST_CASE("Create")
 {
@@ -200,12 +200,11 @@ TEST_CASE("Create")
         REQUIRE_THROWS_WITH(create.run(group, created), "Value of condition is expected");
     }
 
-
     SECTION("From yaml, group CONTAINS")
     {
         static std::string jaml(R"(
               name  : ByName
-              rules : 
+              rules :
                   operator  : AND
                   conditions:
                     - field    : group
@@ -218,14 +217,12 @@ TEST_CASE("Create")
         if (auto ret = pack::yaml::deserialize(jaml, group); !ret) {
             FAIL(ret.error());
         }
+
         fty::job::Create create;
         fty::Group       created;
         REQUIRE_THROWS_WITH(create.run(group, created), "Valid value of condition for linked group is expected");
-          }
+    }
 
-    CHECK(fty::Storage::clear());
-
-  
     SECTION("Unique name")
     {
         std::string json = R"(
