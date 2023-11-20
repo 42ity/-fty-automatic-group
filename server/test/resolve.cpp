@@ -1775,7 +1775,7 @@ TEST_CASE("Resolve by Group")
 
         // And operator | Contains
         {
-            std::string groupWithLinkJaml = R"(
+            std::string groupWithLinkJaml = fmt::format(R"(
                 name  : WithLink
                 rules :
                     operator  : AND
@@ -1786,7 +1786,7 @@ TEST_CASE("Resolve by Group")
                       - field    : group
                         operator : IS
                         value    : {}
-            )"_format(createdName.id.value());
+            )", createdName.id.value());
 
             Group groupLink;
 
@@ -1801,7 +1801,7 @@ TEST_CASE("Resolve by Group")
 
         // IsNot in group
         {
-            std::string groupWithLinkJaml = R"(
+            std::string groupWithLinkJaml = fmt::format(R"(
                 name  : WithLink
                 rules :
                     operator  : AND
@@ -1812,7 +1812,7 @@ TEST_CASE("Resolve by Group")
                       - field    : group
                         operator : IS
                         value    : {}
-            )"_format(createdName.id.value());
+            )", createdName.id.value());
 
             Group groupLink;
 
@@ -1830,7 +1830,7 @@ TEST_CASE("Resolve by Group")
 
         // IsNot group
         {
-            std::string groupWithLinkJaml = R"(
+            std::string groupWithLinkJaml = fmt::format(R"(
                 name  : WithLink
                 rules :
                     operator  : AND
@@ -1841,7 +1841,7 @@ TEST_CASE("Resolve by Group")
                       - field    : group
                         operator : ISNOT
                         value    : {}
-            )"_format(createdName.id.value());
+            )", createdName.id.value());
 
             Group groupLink;
 
@@ -1876,7 +1876,7 @@ TEST_CASE("Resolve by Group")
 
             auto gTmp = groupTmp.create();
 
-            std::string groupWithLinkJaml = R"(
+            std::string groupWithLinkJaml = fmt::format(R"(
                 name : WithLink
                 rules :
                     operator : AND
@@ -1890,7 +1890,7 @@ TEST_CASE("Resolve by Group")
                       - field : group
                         operator : ISNOT
                         value : {}
-            )"_format(createdName.id.value(), gTmp.id.value());
+            )", createdName.id.value(), gTmp.id.value());
 
             if (auto ret = pack::yaml::deserialize(groupWithLinkJaml, groupLink); !ret) {
                 FAIL(ret.error());
