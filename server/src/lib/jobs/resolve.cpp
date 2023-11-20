@@ -45,7 +45,7 @@ static std::string value(const Group::Condition& cond, std::string (*f)(const st
             val = f(val);
         }
 
-        return "%{}%"_format(val);
+        return fmt::format("%{}%", val);
     } else {
         return cond.value.value();
     }
@@ -276,17 +276,17 @@ static std::string byLocation(fty::db::Connection& conn, const Group::Condition&
             ids.push_back(row.get<int64_t>("id_asset_device_dest"));
         }
 
-        std::string ret = R"(
+        std::string ret = fmt::format(R"(
             SELECT id_asset_element
             FROM t_bios_asset_element
             WHERE id_asset_element in ({})
-        )"_format(fty::implode(ids, ","));
+        )", fty::implode(ids, ","));
 
         if (cond.op == Group::ConditionOp::IsNot) {
             ret = "SELECT id_asset_element FROM t_bios_asset_element WHERE id_asset_element NOT IN (" + ret + ")";
         }
 
-        ret += " AND id_type NOT IN ({})"_format(fty::implode(avail, ", "));
+        ret += fmt::format(" AND id_type NOT IN ({})", fty::implode(avail, ", "));
 
         return ret;
     } catch (const std::exception& e) {
@@ -518,12 +518,12 @@ static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group
         return ss.str();
     };
 
-    return R"(
+    return fmt::format(R"(
        SELECT
            id_asset_element as id
        FROM t_bios_asset_element
        WHERE id_asset_element IN ({})
-   )"_format(lambdaImplode());
+   )", lambdaImplode());
 }
 
 static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& cond)
@@ -561,14 +561,14 @@ void Resolve::run(const commands::resolve::In& in, commands::resolve::Out& asset
 
     std::string groups = groupSql(conn, group.rules);
 
-    std::string sql = R"(
+    std::string sql = fmt::format(R"(
         SELECT
             id_asset_element as id,
             name
         FROM t_bios_asset_element
         WHERE id_asset_element IN ({}) AND name <> 'rackcontroller-0'
         ORDER BY id
-    )"_format(groups);
+    )", groups);
 
     // std::cerr << sql << std::endl;
 
