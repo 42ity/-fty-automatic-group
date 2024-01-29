@@ -1,7 +1,7 @@
 /*  ====================================================================================================================
-    read.cpp - Implementation of GET operation on any asset
+    read.cpp - Implementation of read operation on any group
 
-    Copyright (C) 2014 - 2020 Eaton
+    Copyright (C) 2014 - 2024 Eaton
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

@@ -1,5 +1,5 @@
 /*  =========================================================================
-    daemon.h - Linux daemon simple implementation
+    daemon.cpp - Linux daemon simple implementation
 
     Copyright (C) 2014 - 2020 Eaton
 
