@@ -30,6 +30,8 @@ etn_target(static ${PROJECT_NAME}-static
         src/lib/jobs/srr.cpp
         src/lib/jobs/resolve.h
         src/lib/jobs/resolve.cpp
+        src/lib/jobs/resolve-list.h
+        src/lib/jobs/resolve-list.cpp
         src/lib/jobs/srr/utils.h
         src/lib/jobs/srr/utils.cpp
         src/lib/jobs/srr/save.h
@@ -96,6 +98,7 @@ etn_test_target(${PROJECT_NAME}-static
         test/create.cpp
         test/read.cpp
         test/resolve.cpp
+        test/resolve-list.cpp
         test/mutex.cpp
 
         test/db.cpp

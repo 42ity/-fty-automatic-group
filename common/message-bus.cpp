@@ -1,5 +1,5 @@
 /*  =========================================================================
-    message-bus.h - Common message bus wrapper
+    message-bus.cpp - Common message bus wrapper
 
     Copyright (C) 2014 - 2020 Eaton
 

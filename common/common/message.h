@@ -1,5 +1,5 @@
 /*  ====================================================================================================================
-    message.h - Common message bus wrapper
+    message.h - Common message wrapper
 
     Copyright (C) 2014 - 2020 Eaton
 

@@ -1,5 +1,5 @@
 /*  ====================================================================================================================
-    resolve.cpp - Implementation of resolve operation on any group
+    resolve-list.cpp - Implementation of resolve operation on a list of group
 
     Copyright (C) 2024 Eaton
 
@@ -19,7 +19,7 @@
     ====================================================================================================================
 */
 
-#include "resolve.h"
+#include "resolve-list.h"
 #include "common/commands.h"
 #include "common/message-bus.h"
 #include "common/string.h"
@@ -28,23 +28,16 @@
 #include <fty/rest/component.h>
 #include <fty/string-utils.h>
 
+#include <fty_log.h>
+#include <fty_common_rest_audit_log.h>
+
 namespace fty::agroup {
 
-unsigned Resolve::run()
+unsigned ResolveList::run()
 {
     rest::User user(m_request);
     if (auto ret = checkPermissions(user.profile(), m_permissions); !ret) {
         throw rest::Error(ret.error());
-    }
-
-    auto        strIdPrt = m_request.queryArg<std::string>("id");
-    std::string jsonBody;
-
-    if (!strIdPrt) {
-        jsonBody = m_request.body();
-        if (jsonBody.empty()) {
-            throw rest::errors::RequestParamRequired("id or rules");
-        }
     }
 
     fty::groups::MessageBus bus;
@@ -52,18 +45,22 @@ unsigned Resolve::run()
         throw rest::errors::Internal(res.error());
     }
 
-    fty::groups::Message msg = message(fty::commands::resolve::Subject);
+    fty::commands::resolve::list::In in;
 
-    fty::commands::resolve::In in;
-    if (jsonBody.empty()) {
-        if (!fty::groups::isNumeric(*strIdPrt)) {
-            throw rest::errors::Internal("Not a number");
+    auto strIdsPrt = m_request.queryArg<std::string>("ids");
+    if (strIdsPrt && !strIdsPrt->empty()) {
+        std::stringstream ss(*strIdsPrt);
+        while (ss.good()) {
+            std::string substr;
+            getline(ss, substr, ',');
+            if (!fty::groups::isNumeric(substr)) {
+                throw rest::errors::Internal("Not a number");
+            }
+            in.ids.append(fty::convert<uint16_t>(substr));
         }
-        in.id = fty::convert<uint16_t>(*strIdPrt);
-    } else if (auto ret = pack::yaml::deserialize(jsonBody, in); !ret) {
-        throw rest::errors::Internal(ret.error());
     }
 
+    fty::groups::Message msg = message(fty::commands::resolve::list::Subject);
     msg.setData(*pack::json::serialize(in));
 
     auto ret = bus.send(fty::Channel, msg);
@@ -71,26 +68,40 @@ unsigned Resolve::run()
         throw rest::errors::Internal(ret.error());
     }
 
-    commands::resolve::Out data;
-    auto                   info = pack::json::deserialize(ret->userData[0], data);
+    commands::resolve::list::Out data;
+    auto info = pack::json::deserialize(ret->userData[0], data);
     if (!info) {
         throw rest::errors::Internal(info.error());
     }
 
-    std::vector<std::string> out;
+    bool isFirst = true;
+    m_reply << "[";
     for (const auto& it : data) {
-        std::string json = asset::getJsonAsset(fty::convert<uint32_t>(it.id.value()));
-        if (json.empty()) {
-            throw rest::errors::Internal("Cannot build asset information");
+        if (!isFirst) {
+            m_reply << ",";
         }
-        out.push_back(json);
+        else {
+            isFirst = false;
+        }
+        m_reply << "{";
+        m_reply << "\"id\": " << std::to_string(it.id) << ",";
+        m_reply << "\"assets\": [";
+        std::vector<std::string> out;
+        for (const auto& asset : it.assets) {
+            std::string json = asset::getJsonAsset(fty::convert<uint32_t>(asset.id.value()));
+            if (json.empty()) {
+                throw rest::errors::Internal("Cannot build asset information");
+            }
+            out.push_back(json);
+        }
+        m_reply << fty::implode(out, ", ");
+        m_reply << "]";
+        m_reply << "}";
     }
-
-    m_reply << "[" << fty::implode(out, ", ") << "]";
-
+    m_reply << "]";
     return HTTP_OK;
 }
 
 } // namespace fty::agroup
 
-registerHandler(fty::agroup::Resolve)
+registerHandler(fty::agroup::ResolveList)

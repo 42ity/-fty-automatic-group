@@ -1,5 +1,5 @@
 /*  ====================================================================================================================
-    resolve.h - Implementation of resolve group job
+    resolve-list.h - Implementation of resolve list group job
 
     Copyright (C) 2024 Eaton
 
@@ -21,8 +21,6 @@
 
 #pragma once
 #include "lib/task.h"
-#include <fty_common_db_connection.h>
-#include <fty_common_db_dbpath.h>
 
 namespace tnt {
 class Connection;
@@ -30,13 +28,11 @@ class Connection;
 
 namespace fty::job {
 
-std::string groupSql(fty::db::Connection& conn, const Group::Rules& group);
-
-class Resolve : public Task<Resolve, commands::resolve::In, commands::resolve::Out>
+class ResolveList : public Task<ResolveList, commands::resolve::list::In, commands::resolve::list::Out>
 {
 public:
     using Task::Task;
-    void run(const commands::resolve::In& groupId, commands::resolve::Out& assetList);
+    void run(const commands::resolve::list::In& groupIds, commands::resolve::list::Out& assetGroupList);
 };
 
 } // namespace fty::job

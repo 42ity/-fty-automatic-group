@@ -1,3 +1,25 @@
+
+/*  =========================================================================
+    server.cpp - Implementation of server
+
+    Copyright (C) 2014 - 2020 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    =========================================================================
+ */
+
 #include "server.h"
 #include "common/message-bus.h"
 #include "common/srr.h"
@@ -8,6 +30,7 @@
 #include "jobs/read.h"
 #include "jobs/remove.h"
 #include "jobs/resolve.h"
+#include "jobs/resolve-list.h"
 #include "jobs/srr.h"
 #include "jobs/update.h"
 #include <fty_common_messagebus.h>
@@ -64,7 +87,10 @@ void Server::process(const groups::Message& msg)
         m_pool.pushWorker<job::Read>(msg, m_bus);
     } else if (msg.meta.subject == commands::resolve::Subject) {
         m_pool.pushWorker<job::Resolve>(msg, m_bus);
+    } else if (msg.meta.subject == commands::resolve::list::Subject) {
+        m_pool.pushWorker<job::ResolveList>(msg, m_bus);
     }
+
 }
 
 void Server::srrProcess(const groups::Message& msg)

@@ -7,6 +7,7 @@ etn_target(static ${PROJECT_NAME}-common
         common/commands.h
         common/group.h
         common/srr.h
+        common/string.h
 
         message-bus.cpp
         message.cpp
