@@ -22,6 +22,7 @@
 #include "read.h"
 #include "common/commands.h"
 #include "common/message-bus.h"
+#include "common/string.h"
 #include "group-rest.h"
 #include <fty/rest/audit-log.h>
 #include <fty/rest/component.h>
@@ -39,6 +40,10 @@ unsigned Read::run()
     auto strIdPrt = m_request.queryArg<std::string>("id");
     if (!strIdPrt) {
         throw rest::errors::RequestParamRequired("id");
+    }
+
+    if (!fty::groups::isNumeric(*strIdPrt)) {
+        throw rest::errors::Internal("Not a number");
     }
 
     fty::groups::MessageBus bus;

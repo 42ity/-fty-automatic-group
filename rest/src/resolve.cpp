@@ -1,6 +1,7 @@
 #include "resolve.h"
 #include "common/commands.h"
 #include "common/message-bus.h"
+#include "common/string.h"
 #include "group-rest.h"
 #include <asset/json.h>
 #include <fty/rest/component.h>
@@ -34,6 +35,9 @@ unsigned Resolve::run()
 
     fty::commands::resolve::In in;
     if (jsonBody.empty()) {
+        if (!fty::groups::isNumeric(*strIdPrt)) {
+            throw rest::errors::Internal("Not a number");
+        }
         in.id = fty::convert<uint16_t>(*strIdPrt);
     } else if (auto ret = pack::yaml::deserialize(jsonBody, in); !ret) {
         throw rest::errors::Internal(ret.error());

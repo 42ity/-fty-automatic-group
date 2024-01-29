@@ -34,7 +34,7 @@ namespace commands::resolve {
     {
         pack::UInt64 id = FIELD("id");
         fty::Group::Rules rules = FIELD("rules");
-        
+
         using pack::Node::Node;
         META(Request, id, rules);
     };
@@ -52,6 +52,40 @@ namespace commands::resolve {
     using In  = Request;
     using Out = pack::ObjectList<Answer>;
 } // namespace commands::resolve
+
+namespace commands::resolve::list {
+    static constexpr const char* Subject = "RESOLVE_LIST";
+
+    struct Request : public pack::Node
+    {
+        pack::UInt64List ids = FIELD("ids");
+
+        using pack::Node::Node;
+        META(Request, ids);
+    };
+
+    struct Assets : public pack::Node
+    {
+        pack::UInt64 id   = FIELD("id");
+        pack::String name = FIELD("name");
+
+        using pack::Node::Node;
+        META(Assets, id, name);
+    };
+
+    struct Answer : public pack::Node
+    {
+        pack::UInt64 id   = FIELD("id");
+        pack::ObjectList<Assets> assets = FIELD("assets");
+
+        using pack::Node::Node;
+        META(Answer, id, assets);
+    };
+
+    using In  = Request;
+    using Out = pack::ObjectList<Answer>;
+} // namespace commands::resolve::list
+
 
 namespace commands::list {
     static constexpr const char* Subject = "LIST";

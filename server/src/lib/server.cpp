@@ -8,6 +8,7 @@
 #include "jobs/read.h"
 #include "jobs/remove.h"
 #include "jobs/resolve.h"
+#include "jobs/resolve-list.h"
 #include "jobs/srr.h"
 #include "jobs/update.h"
 #include <fty_common_messagebus.h>
@@ -64,7 +65,10 @@ void Server::process(const groups::Message& msg)
         m_pool.pushWorker<job::Read>(msg, m_bus);
     } else if (msg.meta.subject == commands::resolve::Subject) {
         m_pool.pushWorker<job::Resolve>(msg, m_bus);
+    } else if (msg.meta.subject == commands::resolve::list::Subject) {
+        m_pool.pushWorker<job::ResolveList>(msg, m_bus);
     }
+
 }
 
 void Server::srrProcess(const groups::Message& msg)

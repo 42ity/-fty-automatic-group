@@ -237,12 +237,12 @@ static std::string byLocation(fty::db::Connection& conn, const Group::Condition&
 
         // get hypervisors
         std::string sqlHypervisor = R"(
-            select l.id_asset_device_dest 
+            select l.id_asset_device_dest
             from t_bios_asset_link as l
-            LEFT JOIN t_bios_asset_element AS e 
+            LEFT JOIN t_bios_asset_element AS e
             ON e.id_asset_element = l.id_asset_device_src
-            where l.id_asset_device_src in ({id}) and 
-                  l.id_asset_link_type IN ({linkTypes})     
+            where l.id_asset_device_src in ({id}) and
+                  l.id_asset_link_type IN ({linkTypes})
         )";
 
         // hosted by | get VMs
@@ -256,17 +256,17 @@ static std::string byLocation(fty::db::Connection& conn, const Group::Condition&
         )";
 
         // clang-format off
-        sqlHypervisor = fmt::format(sqlHypervisor, 
-            "id"_a        = fty::implode(ids, ", "), 
+        sqlHypervisor = fmt::format(sqlHypervisor,
+            "id"_a        = fty::implode(ids, ", "),
             "linkTypes"_a = fty::implode(hypervisorLinkTypes(), ", ")
         );
 
         sqlVM = fmt::format(sqlVM,
-            "linkTypes"_a = fty::implode(vmLinkTypes(), ", "), 
-            "val"_a = sqlHypervisor, 
+            "linkTypes"_a = fty::implode(vmLinkTypes(), ", "),
+            "val"_a = sqlHypervisor,
             "type"_a = persist::HYPERVISOR
         );
-        // clang-format on  
+        // clang-format on
 
         for (const auto& row : conn.select(sqlHypervisor)) {
             ids.push_back(row.get<int64_t>("id_asset_device_dest"));
@@ -308,7 +308,7 @@ static std::string byHostName(const Group::Condition& cond)
             ((
                 a.keytag='hostname.1'
             ) OR (
-                a.keytag = 'hostname' 
+                a.keytag = 'hostname'
             ))
     )";
 
@@ -345,7 +345,7 @@ static std::string byIpAddress(const Group::Condition& cond)
             ((
                 a.keytag='ip.1'
             ) OR (
-                a.keytag = 'ip' 
+                a.keytag = 'ip'
             ))
             AND t.name != "virtual-machine"
     )";
@@ -399,10 +399,10 @@ static std::string byGroupId(fty::db::Connection& conn, const Group::Condition& 
 static std::string byTag(const Group::Condition& cond)
 {
     static std::string sql = R"(
-        SELECT DISTINCT r.id_asset_element 
-        FROM t_bios_asset_element_tag_relation AS r 
-        INNER JOIN t_bios_tag AS tag 
-        ON r.id_tag = tag.id_tag 
+        SELECT DISTINCT r.id_asset_element
+        FROM t_bios_asset_element_tag_relation AS r
+        INNER JOIN t_bios_tag AS tag
+        ON r.id_tag = tag.id_tag
         WHERE tag.name {op} '{val}'
     )";
 
@@ -419,7 +419,7 @@ static std::string byTag(const Group::Condition& cond)
             "val"_a = value(condNot)
         );
 
-        return fmt::format(R"( 
+        return fmt::format(R"(
             SELECT id_asset_element
             FROM t_bios_asset_element
             WHERE id_asset_element NOT IN ({})
@@ -437,7 +437,7 @@ static std::string byTag(const Group::Condition& cond)
 
 // =====================================================================================================================
 
-static std::string groupSql(fty::db::Connection& conn, const Group::Rules& group)
+std::string groupSql(fty::db::Connection& conn, const Group::Rules& group)
 {
     struct SubQuery
     {

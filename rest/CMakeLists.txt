@@ -17,6 +17,8 @@ etn_target(shared ${PROJECT_NAME}-rest
         src/list.cpp
         src/resolve.h
         src/resolve.cpp
+        src/resolve-list.h
+        src/resolve-list.cpp
     USES
         fty-cmake-rest
         cxxtools

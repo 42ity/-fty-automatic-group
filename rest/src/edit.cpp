@@ -1,6 +1,7 @@
 #include "edit.h"
 #include <fty/rest/component.h>
 #include "common/message-bus.h"
+#include "common/string.h"
 #include "group-rest.h"
 #include "common/commands.h"
 
@@ -16,6 +17,10 @@ unsigned Edit::run()
     auto strIdPrt = m_request.queryArg<std::string>("id");
     if (!strIdPrt) {
         throw rest::errors::RequestParamRequired("id");
+    }
+
+    if (!fty::groups::isNumeric(*strIdPrt)) {
+        throw rest::errors::Internal("Not a number");
     }
 
     std::string json = m_request.body();
