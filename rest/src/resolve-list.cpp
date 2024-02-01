@@ -47,6 +47,8 @@ unsigned ResolveList::run()
 
     fty::commands::resolve::list::In in;
 
+    // Read ids paramater (optional)
+    // If empty, return all assets for all groups defined
     auto strIdsPrt = m_request.queryArg<std::string>("ids");
     if (strIdsPrt && !strIdsPrt->empty()) {
         std::stringstream ss(*strIdsPrt);
@@ -58,6 +60,12 @@ unsigned ResolveList::run()
             }
             in.ids.append(fty::convert<uint16_t>(substr));
         }
+    }
+
+    // If ids parameter not defined (empty) and another input is defined,
+    // we consider that it is a bad input
+    if (in.ids.empty() && !m_request.isParamsEmpty()) {
+        throw rest::errors::Internal("Bad input");
     }
 
     fty::groups::Message msg = message(fty::commands::resolve::list::Subject);
