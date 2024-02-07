@@ -1,3 +1,24 @@
+/*  ====================================================================================================================
+    commands.h - Definition of dto commands for automatic group
+
+    Copyright (C) 2024 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    ====================================================================================================================
+*/
+
 #pragma once
 #include "group.h"
 
@@ -34,7 +55,7 @@ namespace commands::resolve {
     {
         pack::UInt64 id = FIELD("id");
         fty::Group::Rules rules = FIELD("rules");
-        
+
         using pack::Node::Node;
         META(Request, id, rules);
     };
@@ -52,6 +73,40 @@ namespace commands::resolve {
     using In  = Request;
     using Out = pack::ObjectList<Answer>;
 } // namespace commands::resolve
+
+namespace commands::resolve::list {
+    static constexpr const char* Subject = "RESOLVE_LIST";
+
+    struct Request : public pack::Node
+    {
+        pack::UInt64List ids = FIELD("ids");
+
+        using pack::Node::Node;
+        META(Request, ids);
+    };
+
+    struct Assets : public pack::Node
+    {
+        pack::UInt64 id   = FIELD("id");
+        pack::String name = FIELD("name");
+
+        using pack::Node::Node;
+        META(Assets, id, name);
+    };
+
+    struct Answer : public pack::Node
+    {
+        pack::UInt64 id   = FIELD("id");
+        pack::ObjectList<Assets> assets = FIELD("assets");
+
+        using pack::Node::Node;
+        META(Answer, id, assets);
+    };
+
+    using In  = Request;
+    using Out = pack::ObjectList<Answer>;
+} // namespace commands::resolve::list
+
 
 namespace commands::list {
     static constexpr const char* Subject = "LIST";

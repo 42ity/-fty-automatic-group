@@ -1,5 +1,5 @@
 /*  ====================================================================================================================
-    resolve.h - Implementation of resolve group job
+    string.h - Common string maniplulation
 
     Copyright (C) 2024 Eaton
 
@@ -20,23 +20,29 @@
 */
 
 #pragma once
-#include "lib/task.h"
-#include <fty_common_db_connection.h>
-#include <fty_common_db_dbpath.h>
 
-namespace tnt {
-class Connection;
+namespace fty::groups {
+
+inline bool isNumeric(const std::string& string)
+{
+    std::size_t pos = 0;
+    long value = 0;
+
+    try
+    {
+        value = std::stol(string, &pos);
+    }
+    catch(std::invalid_argument&)
+    {
+        return false;
+    }
+    catch(std::out_of_range&)
+    {
+        return false;
+    }
+    return pos == string.size() && !std::isnan(value);
 }
 
-namespace fty::job {
+} // namespace fty::groups
 
-std::string groupSql(fty::db::Connection& conn, const Group::Rules& group);
-
-class Resolve : public Task<Resolve, commands::resolve::In, commands::resolve::Out>
-{
-public:
-    using Task::Task;
-    void run(const commands::resolve::In& groupId, commands::resolve::Out& assetList);
-};
-
-} // namespace fty::job
+// =====================================================================================================================

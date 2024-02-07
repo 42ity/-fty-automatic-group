@@ -1,5 +1,5 @@
 /*  ====================================================================================================================
-    resolve.h - Implementation of resolve group job
+    resolve-list.h - Implementation of resolve operation on a list of group
 
     Copyright (C) 2024 Eaton
 
@@ -20,23 +20,26 @@
 */
 
 #pragma once
-#include "lib/task.h"
-#include <fty_common_db_connection.h>
-#include <fty_common_db_dbpath.h>
+#pragma once
+#include <fty/rest/runner.h>
 
-namespace tnt {
-class Connection;
-}
+namespace fty::agroup {
 
-namespace fty::job {
-
-std::string groupSql(fty::db::Connection& conn, const Group::Rules& group);
-
-class Resolve : public Task<Resolve, commands::resolve::In, commands::resolve::Out>
+class ResolveList: public rest::Runner
 {
 public:
-    using Task::Task;
-    void run(const commands::resolve::In& groupId, commands::resolve::Out& assetList);
+    INIT_REST("agroup/resolve-list");
+
+public:
+    unsigned run() override;
+
+private:
+    // clang-format off
+    Permissions m_permissions = {
+        { rest::User::Profile::Admin,     rest::Access::Read },
+        { rest::User::Profile::Dashboard, rest::Access::Read }
+    };
+    // clang-format on
 };
 
-} // namespace fty::job
+}

@@ -1,5 +1,5 @@
 /*  ====================================================================================================================
-    read.h - Implementation of GET operation on any asset
+    read.h - Implementation of read operation on any group
 
     Copyright (C) 2014 - 2020 Eaton
 

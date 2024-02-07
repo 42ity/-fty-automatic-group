@@ -14,6 +14,12 @@
 </mapping>
 
 <mapping>
+    <target>agroup/resolve-list@lib${NAME}-rest</target>
+    <url>^/api/v1/automaticgroup/content?(.+)$</url>
+    <method>GET</method>
+</mapping>
+
+<mapping>
     <target>agroup/read@lib${NAME}-rest</target>
     <url>^/api/v1/automaticgroup/(.+)$</url>
     <method>GET</method>

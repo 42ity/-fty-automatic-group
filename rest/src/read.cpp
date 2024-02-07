@@ -1,7 +1,7 @@
 /*  ====================================================================================================================
-    read.cpp - Implementation of GET operation on any asset
+    read.cpp - Implementation of read operation on any group
 
-    Copyright (C) 2014 - 2020 Eaton
+    Copyright (C) 2014 - 2024 Eaton
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "read.h"
 #include "common/commands.h"
 #include "common/message-bus.h"
+#include "common/string.h"
 #include "group-rest.h"
 #include <fty/rest/audit-log.h>
 #include <fty/rest/component.h>
@@ -39,6 +40,10 @@ unsigned Read::run()
     auto strIdPrt = m_request.queryArg<std::string>("id");
     if (!strIdPrt) {
         throw rest::errors::RequestParamRequired("id");
+    }
+
+    if (!fty::groups::isNumeric(*strIdPrt)) {
+        throw rest::errors::Internal("Not a number");
     }
 
     fty::groups::MessageBus bus;
