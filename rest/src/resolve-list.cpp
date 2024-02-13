@@ -27,6 +27,7 @@
 #include <asset/json.h>
 #include <fty/rest/component.h>
 #include <fty/string-utils.h>
+#include <fty_common_json.h>
 
 #include <fty_log.h>
 #include <fty_common_rest_audit_log.h>
@@ -62,10 +63,19 @@ unsigned ResolveList::run()
         }
     }
 
-    // If ids parameter not defined (empty) and another input is defined,
-    // we consider that it is a bad input
-    if (in.ids.empty() && !m_request.isParamsEmpty()) {
-        throw rest::errors::Internal("Bad input");
+    // Read detail parameter (optional)
+    bool detail{true}; // default
+    auto strDetailPtr = m_request.queryArg<std::string>("detail");
+    if (strDetailPtr) {
+        if (*strDetailPtr == "true") {
+            detail = true;
+        }
+        else if (*strDetailPtr == "false") {
+            detail = false;
+        }
+        else {
+            throw rest::errors::Internal("Detail not in ['true', 'false']");
+        }
     }
 
     fty::groups::Message msg = message(fty::commands::resolve::list::Subject);
@@ -96,10 +106,21 @@ unsigned ResolveList::run()
         m_reply << "\"assets\": [";
         std::vector<std::string> out;
         for (const auto& asset : it.assets) {
-            std::string json = asset::getJsonAsset(fty::convert<uint32_t>(asset.id.value()));
-            if (json.empty()) {
-                throw rest::errors::Internal("Cannot build asset information");
+            std::string json;
+
+            if (detail) { // full payload
+                json = asset::getJsonAsset(fty::convert<uint32_t>(asset.id.value()));
+                if (json.empty()) {
+                    throw rest::errors::Internal("Cannot build asset information");
+                }
             }
+            else { // light payload
+                cxxtools::SerializationInfo si;
+                si.addMember("id") <<= asset.id.value();
+                si.addMember("name") <<= asset.name; //iname
+                json = JSON::writeToString(si, false);
+            }
+
             out.push_back(json);
         }
         m_reply << fty::implode(out, ", ");
