@@ -67,25 +67,23 @@ etn_target(exe ${PROJECT_NAME}
         fty_common_db
 )
 
+# install conf files -> etc/
 etn_configure_file(
     conf/agroup.conf.in
-
     TARGET      ${PROJECT_NAME}
     DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/${PROJECT_NAME}
 )
-
 etn_configure_file(
     conf/logger.conf.in
-
     TARGET      ${PROJECT_NAME}
     DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/${PROJECT_NAME}
 )
 
+# install service file -> lib/systemd/system
 etn_configure_file(
     ${PROJECT_NAME}.service.in
-
     TARGET      ${PROJECT_NAME}
-    DESTINATION /usr/lib/systemd/system/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/systemd/system/
 )
 
 ########################################################################################################################
