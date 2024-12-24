@@ -208,7 +208,7 @@ Expected<Group> Storage::save(const Group& group)
             return rule.id == toSave.id;
         });
         if (found >= 0) {
-            db.m_impl->db.groups[found] = toSave;
+            db.m_impl->db.groups[size_t(found)] = toSave;
         }
     }
 

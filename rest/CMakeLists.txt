@@ -28,17 +28,19 @@ etn_target(shared ${PROJECT_NAME}-rest
         ${PROJECT_NAME}-common
         fty-asset-libng
         fty_common_messagebus
-    TARGET_DESTINATION /usr/lib/bios
+    TARGET_DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}
 )
+
+set_target_properties(${PROJECT_NAME}-rest PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
 
 ########################################################################################################################
 
 # rest endpoints for tntnet
 etn_configure_file(
     conf/54_agroups.xml.in
-
     TARGET      ${PROJECT_NAME}
-    DESTINATION /etc/tntnet/bios.d
+    DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/tntnet/bios.d
 )
 
 ########################################################################################################################
